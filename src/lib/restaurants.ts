@@ -1,5 +1,16 @@
 import { createClient } from './supabase/client'
-import type { CreateRestaurantInput, UpdateRestaurantInput, FilterState } from '@/types'
+import type { CreateRestaurantInput, UpdateRestaurantInput, FilterState, CreateCategoryInput, ReviewPhoto, Restaurant } from '@/types'
+
+const REVIEW_PHOTOS_BUCKET = 'restaurant-review-photos'
+type RestaurantCategoryJoin = { category: { id: string } }
+
+function createUploadId() {
+  if (typeof globalThis !== 'undefined' && globalThis.crypto && typeof globalThis.crypto.randomUUID === 'function') {
+    return globalThis.crypto.randomUUID()
+  }
+
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
+}
 
 export async function getRestaurants(filters: Partial<FilterState> = {}) {
   const supabase = createClient()
@@ -10,6 +21,9 @@ export async function getRestaurants(filters: Partial<FilterState> = {}) {
       *,
       restaurant_categories (
         category:categories (*)
+      ),
+      review_photos:restaurant_review_photos (
+        *
       )
     `)
     .order('created_at', { ascending: false })
@@ -36,14 +50,15 @@ export async function getRestaurants(filters: Partial<FilterState> = {}) {
 
   if (error) throw error
 
-  let restaurants = (data || []).map((r) => ({
+  let restaurants: Restaurant[] = (data || []).map((r) => ({
     ...r,
-    categories: r.restaurant_categories?.map((rc: any) => rc.category) ?? [],
+    categories: ((r.restaurant_categories as RestaurantCategoryJoin[] | null | undefined) ?? []).map((rc) => rc.category),
+    review_photos: r.review_photos ?? [],
   }))
 
   if (filters.category_id) {
     restaurants = restaurants.filter((r) =>
-      r.categories.some((c: any) => c.id === filters.category_id)
+      r.categories.some((c) => c.id === filters.category_id)
     )
   }
 
@@ -140,4 +155,75 @@ export async function createCategory(name: string, color: string, icon?: string)
     .single()
   if (error) throw error
   return data
+}
+
+export async function updateCategory(id: string, input: CreateCategoryInput) {
+  const supabase = createClient()
+  const { data, error } = await supabase
+    .from('categories')
+    .update({
+      name: input.name,
+      color: input.color,
+      icon: input.icon || null,
+    })
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data
+}
+
+export async function deleteCategory(id: string) {
+  const supabase = createClient()
+  const { error } = await supabase.from('categories').delete().eq('id', id)
+  if (error) throw error
+}
+
+export async function uploadReviewPhotos(restaurantId: string, files: File[]) {
+  if (files.length === 0) return [] as ReviewPhoto[]
+
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  const uploadedPhotos: { image_url: string; storage_path: string }[] = []
+
+  for (const file of files) {
+    const extension = file.name.split('.').pop()?.toLowerCase() || 'jpg'
+    const filePath = `${user.id}/${restaurantId}/${createUploadId()}.${extension}`
+
+    const { error: uploadError } = await supabase.storage
+      .from(REVIEW_PHOTOS_BUCKET)
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false,
+      })
+
+    if (uploadError) throw uploadError
+
+    const { data: publicUrlData } = supabase.storage
+      .from(REVIEW_PHOTOS_BUCKET)
+      .getPublicUrl(filePath)
+
+    uploadedPhotos.push({
+      image_url: publicUrlData.publicUrl,
+      storage_path: filePath,
+    })
+  }
+
+  const { data, error } = await supabase
+    .from('restaurant_review_photos')
+    .insert(
+      uploadedPhotos.map((photo) => ({
+        restaurant_id: restaurantId,
+        image_url: photo.image_url,
+        storage_path: photo.storage_path,
+        user_id: user.id,
+      }))
+    )
+    .select()
+
+  if (error) throw error
+  return data ?? []
 }

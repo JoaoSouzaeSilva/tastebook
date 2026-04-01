@@ -1,19 +1,19 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import type { Restaurant } from '@/types'
 import { StarRating } from '../ui/StarRating'
 
 interface MarkTriedModalProps {
-  restaurant: Restaurant
-  onSave: (rating?: number, notes?: string) => Promise<void>
+  onSave: (rating?: number, notes?: string, reviewPhotos?: File[]) => Promise<void>
   onClose: () => void
 }
 
-export function MarkTriedModal({ restaurant, onSave, onClose }: MarkTriedModalProps) {
+export function MarkTriedModal({ onSave, onClose }: MarkTriedModalProps) {
   const [rating, setRating] = useState(0)
   const [notes, setNotes] = useState('')
+  const [reviewPhotos, setReviewPhotos] = useState<File[]>([])
   const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
@@ -24,9 +24,15 @@ export function MarkTriedModal({ restaurant, onSave, onClose }: MarkTriedModalPr
 
   async function handleSave() {
     setSaving(true)
-    await onSave(rating || undefined, notes || undefined)
-    setSaving(false)
-    onClose()
+    setError('')
+    try {
+      await onSave(rating || undefined, notes || undefined, reviewPhotos)
+      onClose()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not save review')
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -62,9 +68,6 @@ export function MarkTriedModal({ restaurant, onSave, onClose }: MarkTriedModalPr
           <h2 className="font-display" style={{ fontSize: 24, fontWeight: 500, color: 'var(--text-primary)', marginBottom: 6 }}>
             You tried it!
           </h2>
-          <p style={{ fontSize: 15, color: 'var(--text-secondary)' }}>
-            How was <strong style={{ color: 'var(--text-primary)' }}>{restaurant.name}</strong>?
-          </p>
         </div>
 
         {/* Rating */}
@@ -80,7 +83,7 @@ export function MarkTriedModal({ restaurant, onSave, onClose }: MarkTriedModalPr
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            placeholder="Any notes? What did you order, what stood out…"
+            placeholder=""
             style={{
               width: '100%', padding: '12px 14px',
               border: '1.5px solid var(--border-default)',
@@ -94,6 +97,46 @@ export function MarkTriedModal({ restaurant, onSave, onClose }: MarkTriedModalPr
             onBlur={(e) => (e.target.style.borderColor = 'var(--border-default)')}
           />
         </div>
+
+        <div style={{ marginBottom: 24 }}>
+          <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8 }}>
+            Photos from the visit
+          </label>
+          <input
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={(e) => setReviewPhotos(Array.from(e.target.files ?? []))}
+            style={{ display: 'block', width: '100%', fontSize: 13, color: 'var(--text-secondary)' }}
+          />
+          {reviewPhotos.length > 0 && (
+            <div style={{ marginTop: 8, display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
+              {reviewPhotos.map((file) => (
+                <div
+                  key={`${file.name}-${file.size}`}
+                  style={{
+                    padding: '8px 6px',
+                    borderRadius: 'var(--radius-md)',
+                    background: 'var(--bg-base)',
+                    border: '1px solid var(--border-subtle)',
+                    fontSize: 11,
+                    color: 'var(--text-secondary)',
+                    lineHeight: 1.3,
+                    overflow: 'hidden',
+                  }}
+                >
+                  {file.name}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {error && (
+          <div style={{ marginBottom: 16, padding: '10px 12px', borderRadius: 'var(--radius-md)', background: '#FEF2F2', color: '#B91C1C', fontSize: 13 }}>
+            {error}
+          </div>
+        )}
 
         {/* Actions */}
         <div style={{ display: 'flex', gap: 10 }}>

@@ -4,7 +4,7 @@ import { ThemeProvider } from '@/components/layout/ThemeProvider'
 
 export const metadata: Metadata = {
   title: 'Tastebook',
-  description: 'Our shared restaurant journal',
+  description: 'Tastebook',
   appleWebApp: { capable: true, statusBarStyle: 'default', title: 'Tastebook' },
 }
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState } from 'react'
 import type { Category, FilterState } from '@/types'
 
 interface FilterBarProps {
@@ -17,14 +17,10 @@ const TABS = [
   { value: 'favorites',    label: '★ Faves' },
 ] as const
 
-export function FilterBar({ filters, categories, onChange, counts }: FilterBarProps) {
-  const [searchOpen, setSearchOpen] = useState(false)
-  const [catOpen, setCatOpen] = useState(false)
-  const searchRef = useRef<HTMLInputElement>(null)
+const controlHeight = 46
 
-  useEffect(() => {
-    if (searchOpen) searchRef.current?.focus()
-  }, [searchOpen])
+export function FilterBar({ filters, categories, onChange, counts }: FilterBarProps) {
+  const [catOpen, setCatOpen] = useState(false)
 
   const countMap: Record<string, number> = {
     all: counts.all,
@@ -86,30 +82,31 @@ export function FilterBar({ filters, categories, onChange, counts }: FilterBarPr
 
       {/* Search + Category row */}
       <div style={{
-        display: 'flex', alignItems: 'center', gap: 8,
-        padding: '10px 0',
+        display: 'flex', flexDirection: 'column', gap: 8,
+        padding: '10px 0 6px',
         minWidth: 0,
       }}>
         {/* Search */}
         <div style={{
-          flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 8,
+          width: '100%', minWidth: 0, display: 'flex', alignItems: 'center', gap: 8,
           background: 'var(--bg-subtle)',
           borderRadius: 'var(--radius-full)',
-          padding: '8px 14px',
-          border: '1px solid var(--border-subtle)',
+          padding: '0 14px',
+          border: '1.5px solid var(--border-subtle)',
           transition: 'all 0.2s',
+          height: controlHeight,
         }}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2.5">
             <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
           </svg>
           <input
-            ref={searchRef}
             value={filters.search}
             onChange={(e) => onChange({ search: e.target.value })}
             placeholder="Search restaurants…"
             style={{
               flex: 1, border: 'none', background: 'transparent',
               fontSize: 14, color: 'var(--text-primary)', outline: 'none',
+              minWidth: 0,
             }}
           />
           {filters.search && (
@@ -120,102 +117,109 @@ export function FilterBar({ filters, categories, onChange, counts }: FilterBarPr
           )}
         </div>
 
-        {/* Category filter */}
-        <div style={{ position: 'relative' }}>
-          <button
-            onClick={() => setCatOpen((o) => !o)}
-            style={{
-              padding: '8px 14px',
-              borderRadius: 'var(--radius-full)',
-              border: `1.5px solid ${filters.category_id ? 'var(--accent-primary)' : 'var(--border-default)'}`,
-              background: filters.category_id ? 'var(--accent-primary-light)' : 'var(--bg-surface)',
-              color: filters.category_id ? 'var(--accent-primary)' : 'var(--text-secondary)',
-              fontSize: 13, fontWeight: 500,
-              cursor: 'pointer', fontFamily: 'var(--font-body)',
-              display: 'flex', alignItems: 'center', gap: 5,
-              whiteSpace: 'nowrap',
-              transition: 'all 0.15s',
-            }}
-          >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
-              <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
-            </svg>
-            {filters.category_id
-              ? categories.find((c) => c.id === filters.category_id)?.name ?? 'Category'
-              : 'Category'}
-          </button>
-
-          {catOpen && (
-            <div
-              className="animate-scale-in"
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: 8, minWidth: 0 }}>
+          {/* Category filter */}
+          <div style={{ position: 'relative', minWidth: 0 }}>
+            <button
+              onClick={() => setCatOpen((o) => !o)}
               style={{
-                position: 'absolute', top: 'calc(100% + 6px)', right: 0,
-                background: 'var(--bg-surface)',
-                border: '1px solid var(--border-default)',
-                borderRadius: 'var(--radius-lg)',
-                boxShadow: 'var(--shadow-lg)',
-                minWidth: 180, zIndex: 50, overflow: 'hidden',
+                width: '100%',
+                height: controlHeight,
+                padding: '0 16px',
+                borderRadius: 'var(--radius-full)',
+                border: `1.5px solid ${filters.category_id ? 'var(--accent-primary)' : 'var(--border-default)'}`,
+                background: filters.category_id ? 'var(--accent-primary-light)' : 'var(--bg-surface)',
+                color: filters.category_id ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                fontSize: 13, fontWeight: 600,
+                cursor: 'pointer', fontFamily: 'var(--font-body)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                whiteSpace: 'nowrap',
+                transition: 'all 0.15s',
               }}
-              onMouseLeave={() => setCatOpen(false)}
             >
-              <button
-                onClick={() => { onChange({ category_id: null }); setCatOpen(false) }}
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
+                <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+              </svg>
+              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {filters.category_id
+                  ? categories.find((c) => c.id === filters.category_id)?.name ?? 'Category'
+                  : 'Category'}
+              </span>
+            </button>
+
+            {catOpen && (
+              <div
+                className="animate-scale-in"
                 style={{
-                  width: '100%', textAlign: 'left', padding: '10px 14px',
-                  background: !filters.category_id ? 'var(--bg-subtle)' : 'none',
-                  border: 'none', cursor: 'pointer', fontSize: 14,
-                  color: 'var(--text-primary)', fontFamily: 'var(--font-body)',
-                  borderBottom: '1px solid var(--border-subtle)',
+                  position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0,
+                  background: 'var(--bg-surface)',
+                  border: '1px solid var(--border-default)',
+                  borderRadius: 'var(--radius-lg)',
+                  boxShadow: 'var(--shadow-lg)',
+                  zIndex: 50, overflow: 'hidden',
                 }}
+                onMouseLeave={() => setCatOpen(false)}
               >
-                All categories
-              </button>
-              {categories.map((cat) => (
                 <button
-                  key={cat.id}
-                  onClick={() => { onChange({ category_id: cat.id }); setCatOpen(false) }}
+                  onClick={() => { onChange({ category_id: null }); setCatOpen(false) }}
                   style={{
                     width: '100%', textAlign: 'left', padding: '10px 14px',
-                    background: filters.category_id === cat.id ? `${cat.color}12` : 'none',
+                    background: !filters.category_id ? 'var(--bg-subtle)' : 'none',
                     border: 'none', cursor: 'pointer', fontSize: 14,
-                    color: filters.category_id === cat.id ? cat.color : 'var(--text-primary)',
-                    fontFamily: 'var(--font-body)',
-                    display: 'flex', alignItems: 'center', gap: 8,
+                    color: 'var(--text-primary)', fontFamily: 'var(--font-body)',
+                    borderBottom: '1px solid var(--border-subtle)',
                   }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--bg-subtle)')}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = filters.category_id === cat.id ? `${cat.color}12` : 'none')}
                 >
-                  {cat.icon && <span>{cat.icon}</span>}
-                  {cat.name}
+                  All categories
                 </button>
-              ))}
-            </div>
-          )}
-        </div>
+                {categories.map((cat) => (
+                  <button
+                    key={cat.id}
+                    onClick={() => { onChange({ category_id: cat.id }); setCatOpen(false) }}
+                    style={{
+                      width: '100%', textAlign: 'left', padding: '10px 14px',
+                      background: filters.category_id === cat.id ? `${cat.color}12` : 'none',
+                      border: 'none', cursor: 'pointer', fontSize: 14,
+                      color: filters.category_id === cat.id ? cat.color : 'var(--text-primary)',
+                      fontFamily: 'var(--font-body)',
+                      display: 'flex', alignItems: 'center', gap: 8,
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--bg-subtle)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = filters.category_id === cat.id ? `${cat.color}12` : 'none')}
+                  >
+                    {cat.icon && <span>{cat.icon}</span>}
+                    {cat.name}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
 
-        {/* Sort */}
-        <select
-          value={filters.sort}
-          onChange={(e) => onChange({ sort: e.target.value as FilterState['sort'] })}
-          style={{
-            padding: '8px 10px',
-            borderRadius: 'var(--radius-full)',
-            border: '1.5px solid var(--border-default)',
-            background: 'var(--bg-surface)',
-            color: 'var(--text-secondary)',
-            fontSize: 12, cursor: 'pointer',
-            fontFamily: 'var(--font-body)',
-            outline: 'none',
-            flexShrink: 0,
-            maxWidth: 90,
-          }}
-        >
-          <option value="newest">Newest</option>
-          <option value="oldest">Oldest</option>
-          <option value="rating">Rating</option>
-          <option value="name">A–Z</option>
-        </select>
+          {/* Sort */}
+          <select
+            value={filters.sort}
+            onChange={(e) => onChange({ sort: e.target.value as FilterState['sort'] })}
+            style={{
+              height: controlHeight,
+              padding: '0 14px',
+              borderRadius: 'var(--radius-full)',
+              border: '1.5px solid var(--border-default)',
+              background: 'var(--bg-surface)',
+              color: 'var(--text-secondary)',
+              fontSize: 13, cursor: 'pointer',
+              fontFamily: 'var(--font-body)',
+              outline: 'none',
+              minWidth: 112,
+              fontWeight: 500,
+            }}
+          >
+            <option value="newest">Newest</option>
+            <option value="oldest">Oldest</option>
+            <option value="rating">Rating</option>
+            <option value="name">A–Z</option>
+          </select>
+        </div>
       </div>
     </div>
   )

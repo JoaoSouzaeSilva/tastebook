@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
@@ -28,8 +29,8 @@ export default function AuthPage() {
         if (error) throw error
         window.location.href = '/'
       }
-    } catch (e: any) {
-      setError(e.message)
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Authentication failed')
     } finally {
       setLoading(false)
     }
@@ -50,22 +51,24 @@ export default function AuthPage() {
         <div style={{
           width: 64, height: 64,
           borderRadius: 'var(--radius-lg)',
-          background: 'linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-gold) 100%)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          overflow: 'hidden',
           margin: '0 auto 20px',
           boxShadow: '0 8px 24px rgba(200, 92, 56, 0.3)',
+          background: 'var(--bg-subtle)',
+          border: '1px solid rgba(200,92,56,0.12)',
         }}>
-          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-            <path d="M8 6C8 6 7 14 12 16C12 16 10 18 10 22H22C22 18 20 16 20 16C25 14 24 6 24 6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M12 22V26M20 22V26M10 26H22" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-          </svg>
+          <Image
+            src="/tastebook.png"
+            alt="Tastebook"
+            width={64}
+            height={64}
+            priority
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          />
         </div>
         <h1 className="font-display" style={{ fontSize: 36, fontWeight: 500, color: 'var(--text-primary)', marginBottom: 8 }}>
           Tastebook
         </h1>
-        <p style={{ fontSize: 16, color: 'var(--text-secondary)', fontWeight: 300 }}>
-          Your shared restaurant journal
-        </p>
       </div>
 
       {/* Card */}
@@ -191,11 +194,6 @@ export default function AuthPage() {
           </button>
         </form>
 
-        {mode === 'login' && (
-          <p style={{ textAlign: 'center', marginTop: 20, fontSize: 13, color: 'var(--text-muted)' }}>
-            Share this link with your partner so they can create an account too.
-          </p>
-        )}
       </div>
     </div>
   )

@@ -10,6 +10,16 @@ export interface Category {
   created_at: string
 }
 
+export interface ReviewPhoto {
+  id: string
+  restaurant_id: string
+  image_url: string
+  storage_path?: string
+  caption?: string
+  user_id?: string
+  created_at: string
+}
+
 export interface Restaurant {
   id: string
   name: string
@@ -26,6 +36,7 @@ export interface Restaurant {
   updated_at: string
   user_id: string
   categories: Category[]
+  review_photos: ReviewPhoto[]
 }
 
 export interface RestaurantWithCategories extends Restaurant {
@@ -46,6 +57,12 @@ export type CreateRestaurantInput = {
 }
 
 export type UpdateRestaurantInput = Partial<CreateRestaurantInput & { is_favorite: boolean }>
+
+export type CreateCategoryInput = {
+  name: string
+  color: string
+  icon?: string
+}
 
 export interface FilterState {
   status: RestaurantStatus | 'all' | 'favorites'

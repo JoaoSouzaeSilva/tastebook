@@ -27,6 +27,11 @@ function extractLatLng(url: string): { lat: number; lng: number } | null {
   return null
 }
 
+type LookupRequest = {
+  url?: string
+  query?: string
+}
+
 async function searchPlaces(
   query: string,
   apiKey: string,
@@ -49,7 +54,7 @@ async function searchPlaces(
       'Content-Type': 'application/json',
       'X-Goog-Api-Key': apiKey,
       'X-Goog-FieldMask':
-        'places.id,places.displayName,places.formattedAddress,places.priceLevel,places.photos',
+        'places.id,places.displayName,places.formattedAddress,places.priceLevel,places.photos,places.primaryType,places.types',
     },
     body: JSON.stringify(body),
   })
@@ -64,13 +69,16 @@ export async function POST(request: NextRequest) {
     return Response.json({ error: 'Google Maps API key not configured' }, { status: 500 })
   }
 
-  let { url } = (await request.json()) as { url: string }
-  if (!url?.trim()) {
-    return Response.json({ error: 'URL is required' }, { status: 400 })
+  let { url, query } = (await request.json()) as LookupRequest
+  url = url?.trim()
+  query = query?.trim()
+
+  if (!url && !query) {
+    return Response.json({ error: 'A Google Maps URL or place name is required' }, { status: 400 })
   }
 
   // Resolve short URLs with a browser User-Agent so Google redirects fully
-  if (/goo\.gl|maps\.app\.goo\.gl/.test(url)) {
+  if (url && /goo\.gl|maps\.app\.goo\.gl/.test(url)) {
     try {
       const res = await fetch(url, {
         redirect: 'follow',
@@ -82,12 +90,12 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  const placeName = extractPlaceName(url)
+  const placeName = url ? extractPlaceName(url) ?? query ?? null : query ?? null
   if (!placeName) {
     return Response.json({ error: 'Could not extract a place name from the URL' }, { status: 400 })
   }
 
-  const latLng = extractLatLng(url)
+  const latLng = url ? extractLatLng(url) : null
 
   // 1. Try with location bias (more accurate when we have coordinates)
   // 2. Fall back to global search if nothing found
@@ -119,5 +127,7 @@ export async function POST(request: NextRequest) {
     address: place.formattedAddress as string | undefined,
     avg_price: place.priceLevel ? PRICE_MAP[place.priceLevel] : undefined,
     photo_url: photoUrl,
+    primary_type: place.primaryType as string | undefined,
+    types: Array.isArray(place.types) ? place.types : undefined,
   })
 }

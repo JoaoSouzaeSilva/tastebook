@@ -8,6 +8,7 @@ import { PriceIndicator } from '../ui/PriceIndicator'
 
 interface RestaurantCardProps {
   restaurant: Restaurant
+  onOpen: () => void
   onEdit: () => void
   onMarkTried: () => void
   onDelete: () => void
@@ -15,13 +16,22 @@ interface RestaurantCardProps {
   animationDelay?: number
 }
 
-export function RestaurantCard({ restaurant, onEdit, onMarkTried, onDelete, onToggleFavorite, animationDelay = 0 }: RestaurantCardProps) {
+export function RestaurantCard({ restaurant, onOpen, onEdit, onMarkTried, onDelete, onToggleFavorite, animationDelay = 0 }: RestaurantCardProps) {
   const [menuOpen, setMenuOpen] = useState(false)
   const tried = restaurant.status === 'tried'
+  const menuItems = [
+    !tried ? { label: '✓ Mark as tried', action: onMarkTried, color: 'var(--accent-secondary)' } : null,
+    restaurant.google_maps_link ? { label: '↗ Open in Maps', action: () => window.open(restaurant.google_maps_link, '_blank'), color: 'var(--text-primary)' } : null,
+    { label: '✎ Edit', action: onEdit, color: 'var(--text-primary)' },
+    { label: '✕ Delete', action: onDelete, color: '#E24B4A' },
+  ].filter((item): item is { label: string; action: () => void; color: string } => Boolean(item))
 
   return (
     <article
       className="animate-fade-up card-hover"
+      onClick={() => {
+        if (tried) onOpen()
+      }}
       style={{
         animationDelay: `${animationDelay}ms`,
         position: 'relative',
@@ -30,6 +40,7 @@ export function RestaurantCard({ restaurant, onEdit, onMarkTried, onDelete, onTo
         borderRadius: 'var(--radius-lg)',
         overflow: 'hidden',
         boxShadow: 'var(--shadow-sm)',
+        cursor: tried ? 'pointer' : 'default',
       }}
     >
       {/* Photo or gradient header */}
@@ -140,12 +151,7 @@ export function RestaurantCard({ restaurant, onEdit, onMarkTried, onDelete, onTo
               }}
               onMouseLeave={() => setMenuOpen(false)}
             >
-              {[
-                !tried && { label: '✓ Mark as tried', action: onMarkTried, color: 'var(--accent-secondary)' },
-                restaurant.google_maps_link && { label: '↗ Open in Maps', action: () => window.open(restaurant.google_maps_link, '_blank'), color: 'var(--text-primary)' },
-                { label: '✎ Edit', action: onEdit, color: 'var(--text-primary)' },
-                { label: '✕ Delete', action: onDelete, color: '#E24B4A' },
-              ].filter(Boolean).map((item: any, i) => (
+              {menuItems.map((item, i) => (
                 <button
                   key={i}
                   onClick={(e) => { e.stopPropagation(); item.action(); setMenuOpen(false) }}
@@ -155,7 +161,7 @@ export function RestaurantCard({ restaurant, onEdit, onMarkTried, onDelete, onTo
                     background: 'none', border: 'none',
                     cursor: 'pointer', fontSize: 14,
                     color: item.color,
-                    borderBottom: i < 2 ? '1px solid var(--border-subtle)' : 'none',
+                    borderBottom: i < menuItems.length - 1 ? '1px solid var(--border-subtle)' : 'none',
                     fontFamily: 'var(--font-body)',
                     transition: 'background 0.1s',
                   }}
@@ -224,8 +230,46 @@ export function RestaurantCard({ restaurant, onEdit, onMarkTried, onDelete, onTo
             marginBottom: 12,
             fontStyle: 'italic',
           }}>
-            "{restaurant.notes}"
+            &ldquo;{restaurant.notes}&rdquo;
           </p>
+        )}
+
+        {restaurant.review_photos?.length > 0 && (
+          <div style={{ display: 'flex', gap: 6, marginBottom: 12, overflowX: 'auto' }}>
+            {restaurant.review_photos.slice(0, 4).map((photo) => (
+              <div
+                key={photo.id}
+                style={{
+                  width: 56,
+                  height: 56,
+                  borderRadius: 'var(--radius-md)',
+                  background: `url(${photo.image_url}) center/cover no-repeat`,
+                  flexShrink: 0,
+                  border: '1px solid var(--border-subtle)',
+                }}
+              />
+            ))}
+            {restaurant.review_photos.length > 4 && (
+              <div
+                style={{
+                  width: 56,
+                  height: 56,
+                  borderRadius: 'var(--radius-md)',
+                  background: 'var(--bg-subtle)',
+                  color: 'var(--text-secondary)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 12,
+                  fontWeight: 600,
+                  border: '1px solid var(--border-subtle)',
+                  flexShrink: 0,
+                }}
+              >
+                +{restaurant.review_photos.length - 4}
+              </div>
+            )}
+          </div>
         )}
 
         {/* Footer */}

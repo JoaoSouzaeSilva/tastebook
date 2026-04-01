@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: 'Tastebook',
     short_name: 'Tastebook',
-    description: 'Our shared restaurant journal',
+    description: 'Tastebook',
     start_url: '/',
     display: 'standalone',
     background_color: '#FAF8F3',

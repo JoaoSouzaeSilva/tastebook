@@ -26,9 +26,7 @@ export function RestaurantModal({ restaurant, categories, onSave, onClose, initi
   const [price, setPrice] = useState<PriceLevel | undefined>(restaurant?.avg_price)
   const [photoUrl, setPhotoUrl] = useState(restaurant?.photo_url ?? '')
   const [dateVisited, setDateVisited] = useState(restaurant?.date_visited ?? '')
-  const [selectedCategories, setSelectedCategories] = useState<string[]>(
-    restaurant?.categories?.map((c) => c.id) ?? []
-  )
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(restaurant?.categories?.map((c) => c.id) ?? [])
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [fetchingPlace, setFetchingPlace] = useState(false)
@@ -93,8 +91,8 @@ export function RestaurantModal({ restaurant, categories, onSave, onClose, initi
         category_ids: selectedCategories,
       })
       onClose()
-    } catch (e: any) {
-      setError(e.message)
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Could not save restaurant')
     } finally {
       setSaving(false)
     }
@@ -265,6 +263,15 @@ export function RestaurantModal({ restaurant, categories, onSave, onClose, initi
             {/* Categories */}
             <div>
               <label style={labelStyle}>Categories</label>
+              {selectedCategories.length > 0 && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
+                  {categories
+                    .filter((cat) => selectedCategories.includes(cat.id))
+                    .map((cat) => (
+                      <CategoryBadge key={cat.id} category={cat} size="sm" onRemove={() => toggleCategory(cat.id)} />
+                    ))}
+                </div>
+              )}
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                 {categories.map((cat) => {
                   const selected = selectedCategories.includes(cat.id)
@@ -328,7 +335,7 @@ export function RestaurantModal({ restaurant, categories, onSave, onClose, initi
                 style={{ ...inputStyle, minHeight: 80, resize: 'vertical', lineHeight: 1.5 }}
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder={status === 'tried' ? 'What did you think? What did you order?' : 'Why you want to go, what to order…'}
+                placeholder=""
                 onFocus={(e) => (e.target.style.borderColor = 'var(--accent-primary)')}
                 onBlur={(e) => (e.target.style.borderColor = 'var(--border-default)')}
               />
