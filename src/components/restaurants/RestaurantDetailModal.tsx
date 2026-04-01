@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { Restaurant } from '@/types'
 import { StarRating } from '../ui/StarRating'
 import { PriceIndicator } from '../ui/PriceIndicator'
@@ -13,6 +13,10 @@ interface RestaurantDetailModalProps {
 
 export function RestaurantDetailModal({ restaurant, onClose }: RestaurantDetailModalProps) {
   const tried = restaurant.status === 'tried'
+  const sheetRef = useRef<HTMLDivElement>(null)
+  const touchStartYRef = useRef<number | null>(null)
+  const [dragY, setDragY] = useState(0)
+  const [isDragging, setIsDragging] = useState(false)
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -27,6 +31,40 @@ export function RestaurantDetailModal({ restaurant, onClose }: RestaurantDetailM
       document.body.style.overflow = ''
     }
   }, [onClose])
+
+  function handleTouchStart(e: React.TouchEvent<HTMLDivElement>) {
+    const sheet = sheetRef.current
+    if (!sheet) return
+    if (sheet.scrollTop > 0) return
+
+    touchStartYRef.current = e.touches[0].clientY
+    setIsDragging(true)
+  }
+
+  function handleTouchMove(e: React.TouchEvent<HTMLDivElement>) {
+    if (!isDragging || touchStartYRef.current === null) return
+
+    const nextDragY = e.touches[0].clientY - touchStartYRef.current
+    if (nextDragY <= 0) {
+      setDragY(0)
+      return
+    }
+
+    setDragY(nextDragY)
+  }
+
+  function handleTouchEnd() {
+    if (!isDragging) return
+
+    if (dragY > 120) {
+      onClose()
+      return
+    }
+
+    setIsDragging(false)
+    setDragY(0)
+    touchStartYRef.current = null
+  }
 
   return (
     <div
@@ -44,7 +82,12 @@ export function RestaurantDetailModal({ restaurant, onClose }: RestaurantDetailM
     >
       <div
         className="animate-fade-up"
+        ref={sheetRef}
         onClick={(e) => e.stopPropagation()}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onTouchCancel={handleTouchEnd}
         style={{
           width: '100%',
           maxWidth: 620,
@@ -53,6 +96,8 @@ export function RestaurantDetailModal({ restaurant, onClose }: RestaurantDetailM
           maxHeight: '92svh',
           overflowY: 'auto',
           boxShadow: 'var(--shadow-xl)',
+          transform: `translateY(${dragY}px)`,
+          transition: isDragging ? 'none' : 'transform 0.22s ease',
         }}
       >
         <div style={{ padding: '12px 0 0', display: 'flex', justifyContent: 'center' }}>
