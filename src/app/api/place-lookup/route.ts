@@ -1,6 +1,11 @@
 import { NextRequest } from 'next/server'
 
-const PRICE_MAP: Record<number, string> = { 1: '€', 2: '€€', 3: '€€€', 4: '€€€€' }
+const PRICE_MAP: Record<string, string> = {
+  PRICE_LEVEL_INEXPENSIVE: '€',
+  PRICE_LEVEL_MODERATE: '€€',
+  PRICE_LEVEL_EXPENSIVE: '€€€',
+  PRICE_LEVEL_VERY_EXPENSIVE: '€€€€',
+}
 
 function extractPlaceName(url: string): string | null {
   // /maps/place/NAME/@... or /maps/place/NAME/...
@@ -42,33 +47,29 @@ export async function POST(request: NextRequest) {
     return Response.json({ error: 'Could not extract a place name from the URL' }, { status: 400 })
   }
 
-  // Find place ID
-  const findRes = await fetch(
-    `https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=${encodeURIComponent(placeName)}&inputtype=textquery&fields=place_id&key=${apiKey}`
-  )
-  const findData = await findRes.json()
-  const placeId = findData.candidates?.[0]?.place_id
-  if (!placeId) {
+  // Places API (New) — Text Search
+  const searchRes = await fetch('https://places.googleapis.com/v1/places:searchText', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Goog-Api-Key': apiKey,
+      'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.priceLevel,places.photos',
+    },
+    body: JSON.stringify({ textQuery: placeName }),
+  })
+
+  const searchData = await searchRes.json()
+  const place = searchData.places?.[0]
+  if (!place) {
     return Response.json({ error: `Place "${placeName}" not found` }, { status: 404 })
   }
 
-  // Get place details
-  const detailsRes = await fetch(
-    `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=name,formatted_address,price_level,photos&key=${apiKey}`
-  )
-  const detailsData = await detailsRes.json()
-  const d = detailsData.result
-
-  if (!d) {
-    return Response.json({ error: 'Failed to fetch place details' }, { status: 502 })
-  }
-
-  // Follow the Places photo redirect to get a stable CDN URL — keeps the API key server-side
+  // Resolve photo to a CDN URL — keeps API key server-side
   let photoUrl: string | undefined
-  if (d.photos?.[0]?.photo_reference) {
+  if (place.photos?.[0]?.name) {
     try {
       const photoRes = await fetch(
-        `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference=${d.photos[0].photo_reference}&key=${apiKey}`,
+        `https://places.googleapis.com/v1/${place.photos[0].name}/media?maxWidthPx=800&key=${apiKey}`,
         { redirect: 'follow' }
       )
       photoUrl = photoRes.url
@@ -78,9 +79,9 @@ export async function POST(request: NextRequest) {
   }
 
   return Response.json({
-    name: d.name as string | undefined,
-    address: d.formatted_address as string | undefined,
-    avg_price: d.price_level != null ? PRICE_MAP[d.price_level as number] : undefined,
+    name: place.displayName?.text as string | undefined,
+    address: place.formattedAddress as string | undefined,
+    avg_price: place.priceLevel ? PRICE_MAP[place.priceLevel] : undefined,
     photo_url: photoUrl,
   })
 }
