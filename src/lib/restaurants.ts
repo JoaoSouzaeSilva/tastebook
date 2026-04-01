@@ -26,7 +26,6 @@ export async function getRestaurants(filters: Partial<FilterState> = {}) {
         *
       )
     `)
-    .order('created_at', { ascending: false })
 
   if (filters.search) {
     query = query.ilike('name', `%${filters.search}%`)
@@ -39,11 +38,17 @@ export async function getRestaurants(filters: Partial<FilterState> = {}) {
   }
 
   if (filters.sort === 'rating') {
-    query = query.order('rating', { ascending: false, nullsFirst: false })
+    query = query
+      .order('rating', { ascending: false, nullsFirst: false })
+      .order('created_at', { ascending: false })
   } else if (filters.sort === 'name') {
-    query = query.order('name', { ascending: true })
+    query = query
+      .order('name', { ascending: true })
+      .order('created_at', { ascending: false })
   } else if (filters.sort === 'oldest') {
     query = query.order('created_at', { ascending: true })
+  } else {
+    query = query.order('created_at', { ascending: false })
   }
 
   const { data, error } = await query

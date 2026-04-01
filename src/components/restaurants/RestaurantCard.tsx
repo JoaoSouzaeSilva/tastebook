@@ -29,9 +29,7 @@ export function RestaurantCard({ restaurant, onOpen, onEdit, onMarkTried, onDele
   return (
     <article
       className="animate-fade-up card-hover"
-      onClick={() => {
-        if (tried) onOpen()
-      }}
+      onClick={onOpen}
       style={{
         animationDelay: `${animationDelay}ms`,
         position: 'relative',
@@ -40,7 +38,7 @@ export function RestaurantCard({ restaurant, onOpen, onEdit, onMarkTried, onDele
         borderRadius: 'var(--radius-lg)',
         overflow: 'hidden',
         boxShadow: 'var(--shadow-sm)',
-        cursor: tried ? 'pointer' : 'default',
+        cursor: 'pointer',
       }}
     >
       {/* Photo or gradient header */}

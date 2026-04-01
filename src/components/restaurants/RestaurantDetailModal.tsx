@@ -12,6 +12,8 @@ interface RestaurantDetailModalProps {
 }
 
 export function RestaurantDetailModal({ restaurant, onClose }: RestaurantDetailModalProps) {
+  const tried = restaurant.status === 'tried'
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose()
@@ -79,25 +81,37 @@ export function RestaurantDetailModal({ restaurant, onClose }: RestaurantDetailM
           </button>
 
           <div style={{ paddingRight: 42 }}>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 10, padding: '5px 10px', borderRadius: 'var(--radius-full)', background: 'var(--accent-secondary-light)', color: 'var(--accent-secondary)', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-              Tried
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 10, padding: '5px 10px', borderRadius: 'var(--radius-full)', background: tried ? 'var(--accent-secondary-light)' : 'var(--accent-primary-light)', color: tried ? 'var(--accent-secondary)' : 'var(--accent-primary)', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              {tried ? 'Tried' : 'Want to try'}
             </div>
             <h2 className="font-display" style={{ fontSize: 30, lineHeight: 1.1, color: 'var(--text-primary)', marginBottom: 10 }}>
               {restaurant.name}
             </h2>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 12 }}>
-              {restaurant.rating ? <StarRating value={restaurant.rating} readonly size="sm" /> : <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>Not rated</span>}
+              {tried ? (
+                restaurant.rating ? <StarRating value={restaurant.rating} readonly size="sm" /> : <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>Not rated</span>
+              ) : (
+                <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>Wishlist</span>
+              )}
               {restaurant.avg_price && (
                 <>
                   <span style={{ color: 'var(--border-default)', fontSize: 12 }}>·</span>
                   <PriceIndicator value={restaurant.avg_price} readonly size="sm" />
                 </>
               )}
-              {restaurant.date_visited && (
+              {tried && restaurant.date_visited && (
                 <>
                   <span style={{ color: 'var(--border-default)', fontSize: 12 }}>·</span>
                   <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
                     Visited {new Date(restaurant.date_visited).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  </span>
+                </>
+              )}
+              {!tried && (
+                <>
+                  <span style={{ color: 'var(--border-default)', fontSize: 12 }}>·</span>
+                  <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+                    Added {new Date(restaurant.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
                   </span>
                 </>
               )}
@@ -155,7 +169,7 @@ export function RestaurantDetailModal({ restaurant, onClose }: RestaurantDetailM
           {restaurant.notes && (
             <div style={{ marginBottom: 18 }}>
               <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 8 }}>
-                Review
+                {tried ? 'Review' : 'Notes'}
               </div>
               <p style={{ fontSize: 15, lineHeight: 1.7, color: 'var(--text-primary)', whiteSpace: 'pre-wrap' }}>
                 {restaurant.notes}
@@ -186,22 +200,6 @@ export function RestaurantDetailModal({ restaurant, onClose }: RestaurantDetailM
                 Open in Maps
               </a>
             )}
-            <button
-              onClick={onClose}
-              style={{
-                padding: '11px 14px',
-                borderRadius: 'var(--radius-full)',
-                border: '1px solid var(--border-default)',
-                background: 'transparent',
-                color: 'var(--text-secondary)',
-                fontSize: 14,
-                fontWeight: 600,
-                cursor: 'pointer',
-                fontFamily: 'var(--font-body)',
-              }}
-            >
-              Close
-            </button>
           </div>
         </div>
       </div>
