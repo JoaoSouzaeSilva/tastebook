@@ -19,7 +19,7 @@ export async function getRestaurants(filters: Partial<FilterState> = {}) {
   }
 
   if (filters.status === 'favorites') {
-    query = query.gte('rating', 4)
+    query = query.eq('is_favorite', true)
   } else if (filters.status && filters.status !== 'all') {
     query = query.eq('status', filters.status)
   }
@@ -103,6 +103,10 @@ export async function deleteRestaurant(id: string) {
   const supabase = createClient()
   const { error } = await supabase.from('restaurants').delete().eq('id', id)
   if (error) throw error
+}
+
+export async function toggleFavorite(id: string, value: boolean) {
+  return updateRestaurant(id, { is_favorite: value })
 }
 
 export async function markAsTried(id: string, rating?: number, notes?: string) {

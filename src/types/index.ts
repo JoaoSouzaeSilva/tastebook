@@ -21,6 +21,7 @@ export interface Restaurant {
   avg_price?: PriceLevel
   photo_url?: string
   date_visited?: string
+  is_favorite: boolean
   created_at: string
   updated_at: string
   user_id: string
@@ -44,7 +45,7 @@ export type CreateRestaurantInput = {
   category_ids?: string[]
 }
 
-export type UpdateRestaurantInput = Partial<CreateRestaurantInput>
+export type UpdateRestaurantInput = Partial<CreateRestaurantInput & { is_favorite: boolean }>
 
 export interface FilterState {
   status: RestaurantStatus | 'all' | 'favorites'

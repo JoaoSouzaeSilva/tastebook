@@ -11,10 +11,11 @@ interface RestaurantCardProps {
   onEdit: () => void
   onMarkTried: () => void
   onDelete: () => void
+  onToggleFavorite: () => void
   animationDelay?: number
 }
 
-export function RestaurantCard({ restaurant, onEdit, onMarkTried, onDelete, animationDelay = 0 }: RestaurantCardProps) {
+export function RestaurantCard({ restaurant, onEdit, onMarkTried, onDelete, onToggleFavorite, animationDelay = 0 }: RestaurantCardProps) {
   const [menuOpen, setMenuOpen] = useState(false)
   const tried = restaurant.status === 'tried'
 
@@ -71,21 +72,54 @@ export function RestaurantCard({ restaurant, onEdit, onMarkTried, onDelete, anim
           </span>
         </div>
 
-        {/* Menu button */}
-        <div style={{ position: 'absolute', top: 8, right: 8 }}>
+        {/* Top-right action buttons */}
+        <div style={{
+          position: 'absolute', top: 10, right: 10,
+          display: 'flex', gap: 6,
+        }}>
+          {/* Favourite */}
+          <button
+            onClick={(e) => { e.stopPropagation(); onToggleFavorite() }}
+            title={restaurant.is_favorite ? 'Remove from favourites' : 'Add to favourites'}
+            style={{
+              width: 32, height: 32,
+              borderRadius: 'var(--radius-full)',
+              background: restaurant.is_favorite ? 'var(--accent-primary)' : 'rgba(255,255,255,0.85)',
+              backdropFilter: 'blur(8px)',
+              border: 'none',
+              cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: '0 1px 4px rgba(0,0,0,0.18)',
+              transition: 'all 0.15s',
+              flexShrink: 0,
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24"
+              fill={restaurant.is_favorite ? '#fff' : 'none'}
+              stroke={restaurant.is_favorite ? '#fff' : 'rgba(0,0,0,0.55)'}
+              strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+            >
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+            </svg>
+          </button>
+
+          {/* Menu */}
+          <div style={{ position: 'relative' }}>
           <button
             onClick={(e) => { e.stopPropagation(); setMenuOpen((o) => !o) }}
             style={{
               width: 32, height: 32,
               borderRadius: 'var(--radius-full)',
-              background: 'rgba(255,255,255,0.9)',
-              border: '1px solid var(--border-subtle)',
+              background: 'rgba(255,255,255,0.85)',
+              backdropFilter: 'blur(8px)',
+              border: 'none',
               cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: 'var(--shadow-sm)',
+              boxShadow: '0 1px 4px rgba(0,0,0,0.18)',
+              flexShrink: 0,
             }}
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="var(--text-secondary)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="rgba(0,0,0,0.55)">
               <circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>
             </svg>
           </button>
@@ -133,6 +167,7 @@ export function RestaurantCard({ restaurant, onEdit, onMarkTried, onDelete, anim
               ))}
             </div>
           )}
+          </div>
         </div>
       </div>
 

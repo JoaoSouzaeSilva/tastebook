@@ -21,7 +21,16 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  const { data: { user } } = await supabase.auth.getUser()
+  const { data: { user }, error } = await supabase.auth.getUser()
+
+  // Stale/invalid refresh token — wipe auth cookies so the user can log in fresh
+  if (error?.code === 'refresh_token_not_found' || error?.code === 'bad_jwt') {
+    const response = NextResponse.redirect(new URL('/auth', request.url))
+    request.cookies.getAll().forEach((cookie) => {
+      if (cookie.name.startsWith('sb-')) response.cookies.delete(cookie.name)
+    })
+    return response
+  }
 
   const isAuthPage = request.nextUrl.pathname.startsWith('/auth')
 

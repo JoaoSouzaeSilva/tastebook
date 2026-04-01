@@ -26,6 +26,7 @@ export function MarkTriedModal({ restaurant, onSave, onClose }: MarkTriedModalPr
     setSaving(true)
     await onSave(rating || undefined, notes || undefined)
     setSaving(false)
+    onClose()
   }
 
   return (

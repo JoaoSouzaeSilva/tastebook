@@ -17,7 +17,7 @@ export default function HomePage() {
   const { theme, toggle } = useTheme()
   const {
     restaurants, categories, filters, loading, stats,
-    addRestaurant, editRestaurant, removeRestaurant, tryRestaurant, updateFilters,
+    addRestaurant, editRestaurant, removeRestaurant, tryRestaurant, favoriteRestaurant, updateFilters,
   } = useRestaurants()
 
   const [addOpen, setAddOpen] = useState(false)
@@ -86,7 +86,7 @@ export default function HomePage() {
         ) : (
           <div className="stagger-children" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 14 }}>
             {restaurants.map((r, i) => (
-              <RestaurantCard key={r.id} restaurant={r} animationDelay={i * 60} onEdit={() => setEditTarget(r)} onMarkTried={() => setTriedTarget(r)} onDelete={async () => { if (confirm(`Delete "${r.name}"?`)) await removeRestaurant(r.id) }} />
+              <RestaurantCard key={r.id} restaurant={r} animationDelay={i * 60} onEdit={() => setEditTarget(r)} onMarkTried={() => setTriedTarget(r)} onToggleFavorite={() => favoriteRestaurant(r.id, !r.is_favorite)} onDelete={async () => { if (confirm(`Delete "${r.name}"?`)) await removeRestaurant(r.id) }} />
             ))}
           </div>
         )}
