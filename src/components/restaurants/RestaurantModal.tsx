@@ -31,6 +31,8 @@ export function RestaurantModal({ restaurant, categories, onSave, onClose, initi
   )
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [fetchingPlace, setFetchingPlace] = useState(false)
+  const [placeError, setPlaceError] = useState('')
 
   // Trap focus / close on escape
   useEffect(() => {
@@ -42,6 +44,29 @@ export function RestaurantModal({ restaurant, categories, onSave, onClose, initi
       document.body.style.overflow = ''
     }
   }, [onClose])
+
+  async function fetchPlaceDetails() {
+    if (!mapsLink.trim()) return
+    setFetchingPlace(true)
+    setPlaceError('')
+    try {
+      const res = await fetch('/api/place-lookup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: mapsLink }),
+      })
+      const data = await res.json()
+      if (!res.ok) { setPlaceError(data.error ?? 'Lookup failed'); return }
+      if (data.name && !name) setName(data.name)
+      if (data.address) setAddress(data.address)
+      if (data.photo_url) setPhotoUrl(data.photo_url)
+      if (data.avg_price) setPrice(data.avg_price)
+    } catch {
+      setPlaceError('Could not reach the lookup service')
+    } finally {
+      setFetchingPlace(false)
+    }
+  }
 
   function toggleCategory(id: string) {
     setSelectedCategories((prev) =>
@@ -158,14 +183,41 @@ export function RestaurantModal({ restaurant, categories, onSave, onClose, initi
             {/* Google Maps */}
             <div>
               <label style={labelStyle}>Google Maps link</label>
-              <input
-                style={inputStyle}
-                value={mapsLink}
-                onChange={(e) => setMapsLink(e.target.value)}
-                placeholder="https://maps.google.com/..."
-                onFocus={(e) => (e.target.style.borderColor = 'var(--accent-primary)')}
-                onBlur={(e) => (e.target.style.borderColor = 'var(--border-default)')}
-              />
+              <div style={{ display: 'flex', gap: 8 }}>
+                <input
+                  style={{ ...inputStyle, flex: 1 }}
+                  value={mapsLink}
+                  onChange={(e) => { setMapsLink(e.target.value); setPlaceError('') }}
+                  placeholder="https://maps.google.com/..."
+                  onFocus={(e) => (e.target.style.borderColor = 'var(--accent-primary)')}
+                  onBlur={(e) => (e.target.style.borderColor = 'var(--border-default)')}
+                />
+                <button
+                  type="button"
+                  onClick={fetchPlaceDetails}
+                  disabled={!mapsLink.trim() || fetchingPlace}
+                  title="Fill fields from Google Maps"
+                  style={{
+                    flexShrink: 0,
+                    padding: '0 14px',
+                    borderRadius: 'var(--radius-md)',
+                    border: '1.5px solid var(--accent-primary)',
+                    background: fetchingPlace ? 'var(--bg-subtle)' : 'var(--accent-primary-light)',
+                    color: 'var(--accent-primary)',
+                    fontSize: 13, fontWeight: 500,
+                    cursor: (!mapsLink.trim() || fetchingPlace) ? 'not-allowed' : 'pointer',
+                    fontFamily: 'var(--font-body)',
+                    opacity: !mapsLink.trim() ? 0.4 : 1,
+                    whiteSpace: 'nowrap',
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  {fetchingPlace ? '…' : '✦ Fill'}
+                </button>
+              </div>
+              {placeError && (
+                <p style={{ marginTop: 6, fontSize: 12, color: '#DC2626' }}>{placeError}</p>
+              )}
             </div>
 
             {/* Address */}
