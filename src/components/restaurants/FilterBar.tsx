@@ -39,10 +39,11 @@ export function FilterBar({ filters, categories, onChange, counts }: FilterBarPr
       <div style={{
         display: 'flex',
         gap: 2,
-        padding: '0 16px',
+        padding: '0',
         overflowX: 'auto',
         scrollbarWidth: 'none',
         WebkitOverflowScrolling: 'touch',
+        msOverflowStyle: 'none',
       }}>
         {TABS.map((tab) => {
           const active = filters.status === tab.value
@@ -86,11 +87,12 @@ export function FilterBar({ filters, categories, onChange, counts }: FilterBarPr
       {/* Search + Category row */}
       <div style={{
         display: 'flex', alignItems: 'center', gap: 8,
-        padding: '10px 16px',
+        padding: '10px 0',
+        minWidth: 0,
       }}>
         {/* Search */}
         <div style={{
-          flex: 1, display: 'flex', alignItems: 'center', gap: 8,
+          flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 8,
           background: 'var(--bg-subtle)',
           borderRadius: 'var(--radius-full)',
           padding: '8px 14px',
@@ -205,6 +207,8 @@ export function FilterBar({ filters, categories, onChange, counts }: FilterBarPr
             fontSize: 12, cursor: 'pointer',
             fontFamily: 'var(--font-body)',
             outline: 'none',
+            flexShrink: 0,
+            maxWidth: 90,
           }}
         >
           <option value="newest">Newest</option>

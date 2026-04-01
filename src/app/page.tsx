@@ -44,7 +44,7 @@ export default function HomePage() {
   }
 
   return (
-    <div style={{ minHeight: '100svh', background: 'var(--bg-base)', maxWidth: 640, margin: '0 auto' }}>
+    <div style={{ minHeight: '100svh', background: 'var(--bg-base)', maxWidth: 640, margin: '0 auto', overflowX: 'hidden', width: '100%' }}>
       <header className="glass" style={{ position: 'sticky', top: 0, zIndex: 40, padding: 'max(env(safe-area-inset-top), 0px) 16px 0', borderBottom: '1px solid var(--border-subtle)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 0' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
