@@ -12,9 +12,9 @@ interface FilterBarProps {
 
 const TABS = [
   { value: 'all',          label: 'All' },
-  { value: 'want_to_try',  label: 'Want to try' },
+  { value: 'want_to_try',  label: 'New' },
   { value: 'tried',        label: 'Tried' },
-  { value: 'favorites',    label: '★ Faves' },
+  { value: 'favorites',    label: '★' },
 ] as const
 
 const controlHeight = 46
@@ -33,13 +33,11 @@ export function FilterBar({ filters, categories, onChange, counts }: FilterBarPr
     <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
       {/* Status tabs */}
       <div style={{
-        display: 'flex',
-        gap: 2,
+        display: 'grid',
+        gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+        gap: 6,
         padding: '0',
-        overflowX: 'auto',
-        scrollbarWidth: 'none',
-        WebkitOverflowScrolling: 'touch',
-        msOverflowStyle: 'none',
+        minWidth: 0,
       }}>
         {TABS.map((tab) => {
           const active = filters.status === tab.value
@@ -48,22 +46,26 @@ export function FilterBar({ filters, categories, onChange, counts }: FilterBarPr
               key={tab.value}
               onClick={() => onChange({ status: tab.value })}
               style={{
-                flexShrink: 0,
-                padding: '8px 14px',
+                minWidth: 0,
+                padding: '8px 10px',
                 borderRadius: 'var(--radius-full)',
                 border: `1.5px solid ${active ? 'var(--accent-primary)' : 'transparent'}`,
                 background: active ? 'var(--accent-primary-light)' : 'transparent',
                 color: active ? 'var(--accent-primary)' : 'var(--text-muted)',
-                fontSize: 13,
+                fontSize: 12,
                 fontWeight: active ? 500 : 400,
                 cursor: 'pointer',
                 fontFamily: 'var(--font-body)',
                 transition: 'all 0.15s',
-                whiteSpace: 'nowrap',
-                display: 'flex', alignItems: 'center', gap: 5,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 4,
               }}
             >
-              {tab.label}
+              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {tab.label}
+              </span>
               <span style={{
                 fontSize: 11,
                 background: active ? 'var(--accent-primary)' : 'var(--bg-subtle)',
@@ -72,6 +74,7 @@ export function FilterBar({ filters, categories, onChange, counts }: FilterBarPr
                 padding: '1px 6px',
                 fontWeight: 600,
                 transition: 'all 0.15s',
+                flexShrink: 0,
               }}>
                 {countMap[tab.value] ?? 0}
               </span>
