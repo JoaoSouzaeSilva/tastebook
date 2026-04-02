@@ -50,6 +50,30 @@ function normalizeRestaurant(row: RestaurantRow): Restaurant {
   }
 }
 
+async function syncRestaurantSummary(restaurantId: string) {
+  const supabase = createClient()
+
+  const { data: visitRows, error: visitsError } = await supabase
+    .from('restaurant_visits')
+    .select('*')
+    .eq('restaurant_id', restaurantId)
+
+  if (visitsError) throw visitsError
+
+  const visits = (visitRows ?? []) as RestaurantVisit[]
+  const latestVisit = getLatestVisit(visits)
+  const averageRating = getAverageRating(visits)
+
+  await updateRestaurant(restaurantId, {
+    status: visits.length > 0 ? 'tried' : 'want_to_try',
+    date_visited: latestVisit?.date_visited,
+    rating: averageRating ?? undefined,
+    notes: latestVisit?.notes ?? undefined,
+    party_size: latestVisit?.party_size,
+    total_paid: latestVisit?.total_paid,
+  })
+}
+
 export async function getRestaurants(filters: Partial<FilterState> = {}) {
   const supabase = createClient()
 
@@ -212,14 +236,7 @@ export async function createVisit(id: string, input: CreateVisitInput = {}) {
 
   if (error) throw error
 
-  await updateRestaurant(id, {
-    status: 'tried',
-    date_visited: visit.date_visited,
-    ...(input.rating !== undefined && { rating: input.rating }),
-    ...(input.notes !== undefined && { notes: input.notes }),
-    ...(input.party_size !== undefined && { party_size: input.party_size }),
-    ...(input.total_paid !== undefined && { total_paid: input.total_paid }),
-  })
+  await syncRestaurantSummary(id)
 
   return visit
 }
@@ -248,27 +265,48 @@ export async function updateVisit(
 
   if (error) throw error
 
-  const { data: visitRows, error: visitsError } = await supabase
-    .from('restaurant_visits')
-    .select('*')
-    .eq('restaurant_id', restaurantId)
-
-  if (visitsError) throw visitsError
-
-  const visits = (visitRows ?? []) as RestaurantVisit[]
-  const latestVisit = getLatestVisit(visits)
-  const averageRating = getAverageRating(visits)
-
-  await updateRestaurant(restaurantId, {
-    status: 'tried',
-    date_visited: latestVisit?.date_visited,
-    rating: averageRating ?? undefined,
-    ...(latestVisit?.notes !== undefined && { notes: latestVisit.notes }),
-    ...(latestVisit?.party_size !== undefined && { party_size: latestVisit.party_size }),
-    ...(latestVisit?.total_paid !== undefined && { total_paid: latestVisit.total_paid }),
-  })
+  await syncRestaurantSummary(restaurantId)
 
   return visit
+}
+
+export async function deleteVisit(visitId: string, restaurantId: string) {
+  const supabase = createClient()
+
+  const { data: visitPhotos, error: photosError } = await supabase
+    .from('restaurant_review_photos')
+    .select('id, storage_path')
+    .eq('visit_id', visitId)
+
+  if (photosError) throw photosError
+
+  const storagePaths = (visitPhotos ?? [])
+    .map((photo) => photo.storage_path)
+    .filter((path): path is string => Boolean(path))
+
+  if (storagePaths.length > 0) {
+    const { error: storageError } = await supabase.storage
+      .from(REVIEW_PHOTOS_BUCKET)
+      .remove(storagePaths)
+
+    if (storageError) throw storageError
+  }
+
+  const { error: deletePhotosError } = await supabase
+    .from('restaurant_review_photos')
+    .delete()
+    .eq('visit_id', visitId)
+
+  if (deletePhotosError) throw deletePhotosError
+
+  const { error } = await supabase
+    .from('restaurant_visits')
+    .delete()
+    .eq('id', visitId)
+
+  if (error) throw error
+
+  await syncRestaurantSummary(restaurantId)
 }
 
 export async function markAsTried(

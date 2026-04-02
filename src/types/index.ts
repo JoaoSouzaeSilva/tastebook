@@ -103,5 +103,5 @@ export interface FilterState {
   status: RestaurantStatus | 'all' | 'favorites'
   category_id: string | null
   search: string
-  sort: 'newest' | 'oldest' | 'rating' | 'name'
+  sort: 'newest' | 'oldest' | 'rating' | 'name' | 'best_value' | 'most_revisited' | 'would_go_again'
 }

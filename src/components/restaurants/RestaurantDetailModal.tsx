@@ -12,9 +12,10 @@ interface RestaurantDetailModalProps {
   onClose: () => void
   onAddVisit: () => void
   onEditVisit: (visit: RestaurantVisit) => void
+  onDeleteVisit: (visit: RestaurantVisit) => void
 }
 
-export function RestaurantDetailModal({ restaurant, onClose, onAddVisit, onEditVisit }: RestaurantDetailModalProps) {
+export function RestaurantDetailModal({ restaurant, onClose, onAddVisit, onEditVisit, onDeleteVisit }: RestaurantDetailModalProps) {
   const tried = restaurant.status === 'tried'
   const pricePerPerson = restaurant.average_spend_per_person ?? getAverageSpendPerPerson(restaurant.visits)
   const averageRating = restaurant.average_rating ?? getAverageRating(restaurant.visits)
@@ -310,21 +311,36 @@ export function RestaurantDetailModal({ restaurant, onClose, onAddVisit, onEditV
                             {visit.review_photos.length} photo{visit.review_photos.length === 1 ? '' : 's'}
                           </span>
                         )}
-                        <button
-                          onClick={() => onEditVisit(visit)}
-                          style={{
-                            marginLeft: 'auto',
-                            border: 'none',
-                            background: 'transparent',
-                            color: 'var(--accent-secondary)',
-                            fontSize: 13,
-                            fontWeight: 600,
-                            cursor: 'pointer',
-                            fontFamily: 'var(--font-body)',
-                          }}
-                        >
-                          Edit
-                        </button>
+                        <div style={{ marginLeft: 'auto', display: 'flex', gap: 12 }}>
+                          <button
+                            onClick={() => onEditVisit(visit)}
+                            style={{
+                              border: 'none',
+                              background: 'transparent',
+                              color: 'var(--accent-secondary)',
+                              fontSize: 13,
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                              fontFamily: 'var(--font-body)',
+                            }}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => onDeleteVisit(visit)}
+                            style={{
+                              border: 'none',
+                              background: 'transparent',
+                              color: '#B91C1C',
+                              fontSize: 13,
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                              fontFamily: 'var(--font-body)',
+                            }}
+                          >
+                            Delete
+                          </button>
+                        </div>
                       </div>
                       {(visit.would_go_again !== undefined || visit.worth_the_money !== undefined) && (
                         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: visit.notes ? 8 : 0 }}>

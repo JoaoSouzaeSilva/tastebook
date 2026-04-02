@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { getRestaurants, getCategories, createRestaurant, updateRestaurant, deleteRestaurant, createVisit, updateVisit, toggleFavorite, createCategory, updateCategory, deleteCategory, uploadReviewPhotos } from '@/lib/restaurants'
+import { getRestaurants, getCategories, createRestaurant, updateRestaurant, deleteRestaurant, createVisit, updateVisit, deleteVisit, toggleFavorite, createCategory, updateCategory, deleteCategory, uploadReviewPhotos } from '@/lib/restaurants'
 import type { Restaurant, Category, FilterState, CreateRestaurantInput, UpdateRestaurantInput, CreateCategoryInput } from '@/types'
 import { getAverageRating, getAverageSpendPerPerson } from '@/lib/reviewStats'
 
@@ -42,7 +42,7 @@ export function useRestaurants() {
 
   // Client-side filtering — instant tab/search/category switching, no extra DB round-trips
   const restaurants = useMemo(() => {
-    let result = allRestaurants
+    let result = [...allRestaurants]
 
     if (filters.status === 'favorites') {
       result = result.filter((r) => r.is_favorite)
@@ -52,7 +52,17 @@ export function useRestaurants() {
 
     if (filters.search) {
       const q = filters.search.toLowerCase()
-      result = result.filter((r) => r.name.toLowerCase().includes(q))
+      result = result.filter((restaurant) => {
+        const visitNotes = restaurant.visits
+          .map((visit) => visit.notes?.toLowerCase() ?? '')
+          .join(' ')
+
+        return (
+          restaurant.name.toLowerCase().includes(q) ||
+          restaurant.address?.toLowerCase().includes(q) ||
+          visitNotes.includes(q)
+        )
+      })
     }
 
     if (filters.category_id) {
@@ -61,8 +71,42 @@ export function useRestaurants() {
       )
     }
 
+    if (filters.sort === 'rating') {
+      result.sort((a, b) => {
+        const ratingDiff = (b.average_rating ?? b.rating ?? -1) - (a.average_rating ?? a.rating ?? -1)
+        if (ratingDiff !== 0) return ratingDiff
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      })
+    } else if (filters.sort === 'name') {
+      result.sort((a, b) => a.name.localeCompare(b.name) || (new Date(b.created_at).getTime() - new Date(a.created_at).getTime()))
+    } else if (filters.sort === 'oldest') {
+      result.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+    } else if (filters.sort === 'best_value') {
+      result.sort((a, b) => {
+        const spendDiff = (a.average_spend_per_person ?? Number.POSITIVE_INFINITY) - (b.average_spend_per_person ?? Number.POSITIVE_INFINITY)
+        if (spendDiff !== 0) return spendDiff
+        return (b.average_rating ?? b.rating ?? -1) - (a.average_rating ?? a.rating ?? -1)
+      })
+    } else if (filters.sort === 'most_revisited') {
+      result.sort((a, b) => {
+        const visitDiff = b.visits.length - a.visits.length
+        if (visitDiff !== 0) return visitDiff
+        return (b.average_rating ?? b.rating ?? -1) - (a.average_rating ?? a.rating ?? -1)
+      })
+    } else if (filters.sort === 'would_go_again') {
+      result.sort((a, b) => {
+        const aPositive = a.visits.filter((visit) => visit.would_go_again === true).length
+        const bPositive = b.visits.filter((visit) => visit.would_go_again === true).length
+        const positiveDiff = bPositive - aPositive
+        if (positiveDiff !== 0) return positiveDiff
+        return b.visits.length - a.visits.length
+      })
+    } else {
+      result.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    }
+
     return result
-  }, [allRestaurants, filters.status, filters.search, filters.category_id])
+  }, [allRestaurants, filters.status, filters.search, filters.category_id, filters.sort])
 
   const addRestaurant = useCallback(async (input: CreateRestaurantInput) => {
     const r = await createRestaurant(input)
@@ -170,6 +214,11 @@ export function useRestaurants() {
     },
     [fetchAll]
   )
+
+  const removeVisit = useCallback(async (restaurantId: string, visitId: string) => {
+    await deleteVisit(visitId, restaurantId)
+    await fetchAll()
+  }, [fetchAll])
 
   const addCategory = useCallback(async (input: CreateCategoryInput) => {
     await createCategory(input.name, input.color, input.icon)
@@ -290,6 +339,7 @@ export function useRestaurants() {
     removeRestaurant,
     tryRestaurant,
     editVisit,
+    removeVisit,
     favoriteRestaurant,
     updateFilters,
     refetch: fetchAll,

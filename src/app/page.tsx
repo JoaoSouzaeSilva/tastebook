@@ -23,7 +23,7 @@ export default function HomePage() {
   const { theme, toggle } = useTheme()
   const {
     allRestaurants, restaurants, categories, filters, loading, stats, overviewStats,
-    addRestaurant, addRestaurantsBulk, bulkUpdateRestaurantCategories, addCategory, editCategory, removeCategory, editRestaurant, removeRestaurant, tryRestaurant, editVisit, favoriteRestaurant, updateFilters,
+    addRestaurant, addRestaurantsBulk, bulkUpdateRestaurantCategories, addCategory, editCategory, removeCategory, editRestaurant, removeRestaurant, tryRestaurant, editVisit, removeVisit, favoriteRestaurant, updateFilters,
   } = useRestaurants()
 
   const [addOpen, setAddOpen] = useState(false)
@@ -189,6 +189,10 @@ export default function HomePage() {
           onEditVisit={(visit) => {
             setDetailTargetId(null)
             setEditingVisitTarget({ restaurantId: detailTarget.id, visit })
+          }}
+          onDeleteVisit={async (visit) => {
+            if (!confirm('Delete this visit?')) return
+            await removeVisit(detailTarget.id, visit.id)
           }}
         />
       )}

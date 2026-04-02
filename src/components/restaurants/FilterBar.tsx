@@ -102,7 +102,7 @@ export function FilterBar({ filters, categories, onChange, counts }: FilterBarPr
           <input
             value={filters.search}
             onChange={(e) => onChange({ search: e.target.value })}
-            placeholder="Search restaurants…"
+            placeholder="Search names, places, reviews…"
             style={{
               flex: 1, border: 'none', background: 'transparent',
               fontSize: 14, color: 'var(--text-primary)', outline: 'none',
@@ -216,7 +216,10 @@ export function FilterBar({ filters, categories, onChange, counts }: FilterBarPr
           >
             <option value="newest">Newest</option>
             <option value="oldest">Oldest</option>
-            <option value="rating">Rating</option>
+            <option value="rating">Highest rated</option>
+            <option value="best_value">Best value</option>
+            <option value="most_revisited">Most revisited</option>
+            <option value="would_go_again">Go again</option>
             <option value="name">A–Z</option>
           </select>
         </div>
