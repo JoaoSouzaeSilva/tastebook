@@ -22,7 +22,7 @@ import type { RestaurantVisit } from '@/types'
 export default function HomePage() {
   const { theme, toggle } = useTheme()
   const {
-    allRestaurants, restaurants, categories, filters, loading, stats,
+    allRestaurants, restaurants, categories, filters, loading, stats, overviewStats,
     addRestaurant, addRestaurantsBulk, bulkUpdateRestaurantCategories, addCategory, editCategory, removeCategory, editRestaurant, removeRestaurant, tryRestaurant, editVisit, favoriteRestaurant, updateFilters,
   } = useRestaurants()
 
@@ -142,7 +142,18 @@ export default function HomePage() {
 
       {!loading && stats.total > 0 && (
         <div style={{ padding: '16px 0 8px' }}>
-          <StatsBar total={stats.total} tried={stats.tried} wantToTry={stats.wantToTry} favorites={stats.favorites} />
+          <StatsBar
+            total={overviewStats.total}
+            tried={overviewStats.tried}
+            wantToTry={overviewStats.wantToTry}
+            favorites={overviewStats.favorites}
+            totalVisits={overviewStats.totalVisits}
+            averageRating={overviewStats.averageRating}
+            averageSpendPerPerson={overviewStats.averageSpendPerPerson}
+            topRestaurant={overviewStats.topRestaurant}
+            topCategory={overviewStats.topCategory}
+            thisMonthVisits={overviewStats.thisMonthVisits}
+          />
         </div>
       )}
 

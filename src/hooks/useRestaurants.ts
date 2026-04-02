@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { getRestaurants, getCategories, createRestaurant, updateRestaurant, deleteRestaurant, createVisit, updateVisit, toggleFavorite, createCategory, updateCategory, deleteCategory, uploadReviewPhotos } from '@/lib/restaurants'
 import type { Restaurant, Category, FilterState, CreateRestaurantInput, UpdateRestaurantInput, CreateCategoryInput } from '@/types'
+import { getAverageRating, getAverageSpendPerPerson } from '@/lib/reviewStats'
 
 const defaultFilters: FilterState = {
   status: 'all',
@@ -190,13 +191,77 @@ export function useRestaurants() {
     setFilters((prev) => ({ ...prev, ...patch }))
   }, [])
 
-  // Stats always reflect the full unfiltered list
-  const stats = {
-    total: allRestaurants.length,
-    tried: allRestaurants.filter((r) => r.status === 'tried').length,
-    wantToTry: allRestaurants.filter((r) => r.status === 'want_to_try').length,
-    favorites: allRestaurants.filter((r) => r.is_favorite).length,
-  }
+  const stats = useMemo(() => {
+    const triedRestaurants = allRestaurants.filter((r) => r.status === 'tried')
+
+    return {
+      total: allRestaurants.length,
+      tried: triedRestaurants.length,
+      wantToTry: allRestaurants.filter((r) => r.status === 'want_to_try').length,
+      favorites: allRestaurants.filter((r) => r.is_favorite).length,
+    }
+  }, [allRestaurants])
+
+  const overviewStats = useMemo(() => {
+    const statsRestaurants = filters.category_id
+      ? allRestaurants.filter((restaurant) =>
+          restaurant.categories.some((category) => category.id === filters.category_id)
+        )
+      : allRestaurants
+
+    const triedRestaurants = statsRestaurants.filter((r) => r.status === 'tried')
+    const allVisits = statsRestaurants.flatMap((restaurant) =>
+      restaurant.visits.map((visit) => ({ ...visit, restaurant }))
+    )
+
+    const now = new Date()
+    const currentMonth = now.getMonth()
+    const currentYear = now.getFullYear()
+    const thisMonthVisits = allVisits.filter(({ date_visited }) => {
+      const visitDate = new Date(date_visited)
+      return visitDate.getMonth() === currentMonth && visitDate.getFullYear() === currentYear
+    }).length
+
+    const restaurantCounts = new Map<string, { name: string; count: number }>()
+    for (const restaurant of statsRestaurants) {
+      restaurantCounts.set(restaurant.id, {
+        name: restaurant.name,
+        count: restaurant.visits.length,
+      })
+    }
+
+    const topRestaurant = [...restaurantCounts.values()]
+      .filter((entry) => entry.count > 0)
+      .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))[0] ?? null
+
+    const categoryCounts = new Map<string, { name: string; count: number }>()
+    for (const restaurant of statsRestaurants) {
+      if (restaurant.visits.length === 0) continue
+      for (const category of restaurant.categories) {
+        const current = categoryCounts.get(category.id)
+        categoryCounts.set(category.id, {
+          name: category.name,
+          count: (current?.count ?? 0) + restaurant.visits.length,
+        })
+      }
+    }
+
+    const topCategory = [...categoryCounts.values()]
+      .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))[0] ?? null
+
+    return {
+      total: statsRestaurants.length,
+      tried: triedRestaurants.length,
+      wantToTry: statsRestaurants.filter((r) => r.status === 'want_to_try').length,
+      favorites: statsRestaurants.filter((r) => r.is_favorite).length,
+      totalVisits: allVisits.length,
+      averageRating: getAverageRating(allVisits) ?? null,
+      averageSpendPerPerson: getAverageSpendPerPerson(allVisits) ?? null,
+      topRestaurant,
+      topCategory,
+      thisMonthVisits,
+    }
+  }, [allRestaurants, filters.category_id])
 
   return {
     allRestaurants,
@@ -206,6 +271,7 @@ export function useRestaurants() {
     loading,
     error,
     stats,
+    overviewStats,
     addRestaurant,
     addRestaurantsBulk,
     bulkUpdateRestaurantCategories,
