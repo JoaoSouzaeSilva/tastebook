@@ -119,6 +119,8 @@ export function useRestaurants() {
       notes?: string,
       partySize?: number,
       totalPaid?: number,
+      wouldGoAgain?: boolean,
+      worthTheMoney?: boolean,
       dateVisited?: string,
       reviewPhotos: File[] = []
     ) => {
@@ -127,6 +129,8 @@ export function useRestaurants() {
         notes,
         party_size: partySize,
         total_paid: totalPaid,
+        would_go_again: wouldGoAgain,
+        worth_the_money: worthTheMoney,
         date_visited: dateVisited,
       })
       if (reviewPhotos.length > 0) {
@@ -145,6 +149,8 @@ export function useRestaurants() {
       notes?: string,
       partySize?: number,
       totalPaid?: number,
+      wouldGoAgain?: boolean,
+      worthTheMoney?: boolean,
       dateVisited?: string,
       reviewPhotos: File[] = []
     ) => {
@@ -153,6 +159,8 @@ export function useRestaurants() {
         notes,
         party_size: partySize,
         total_paid: totalPaid,
+        would_go_again: wouldGoAgain,
+        worth_the_money: worthTheMoney,
         date_visited: dateVisited,
       })
       if (reviewPhotos.length > 0) {

@@ -11,6 +11,8 @@ interface MarkTriedModalProps {
     notes?: string,
     partySize?: number,
     totalPaid?: number,
+    wouldGoAgain?: boolean,
+    worthTheMoney?: boolean,
     dateVisited?: string,
     reviewPhotos?: File[]
   ) => Promise<void>
@@ -24,6 +26,8 @@ export function MarkTriedModal({ onSave, onClose, isRepeatVisit = false, initial
   const [notes, setNotes] = useState(initialVisit?.notes ?? '')
   const [partySize, setPartySize] = useState(initialVisit?.party_size?.toString() ?? '')
   const [totalPaid, setTotalPaid] = useState(initialVisit?.total_paid?.toString() ?? '')
+  const [wouldGoAgain, setWouldGoAgain] = useState<boolean | undefined>(initialVisit?.would_go_again)
+  const [worthTheMoney, setWorthTheMoney] = useState<boolean | undefined>(initialVisit?.worth_the_money)
   const [dateVisited, setDateVisited] = useState(initialVisit?.date_visited ?? new Date().toISOString().split('T')[0])
   const [reviewPhotos, setReviewPhotos] = useState<File[]>([])
   const [saving, setSaving] = useState(false)
@@ -58,6 +62,8 @@ export function MarkTriedModal({ onSave, onClose, isRepeatVisit = false, initial
         notes || undefined,
         parsedPartySize,
         parsedTotalPaid,
+        wouldGoAgain,
+        worthTheMoney,
         dateVisited || undefined,
         reviewPhotos
       )
@@ -86,6 +92,21 @@ export function MarkTriedModal({ onSave, onClose, isRepeatVisit = false, initial
     fontFamily: 'var(--font-body)',
   }
 
+  const choiceButtonStyle = (selected: boolean, positive: boolean) => ({
+    flex: 1,
+    minWidth: 0,
+    padding: '12px 14px',
+    borderRadius: 'var(--radius-md)',
+    border: `1.5px solid ${selected ? (positive ? 'var(--accent-secondary)' : '#B45309') : 'var(--border-default)'}`,
+    background: selected ? (positive ? 'var(--accent-secondary-light)' : '#FEF3C7') : 'transparent',
+    color: selected ? (positive ? 'var(--accent-secondary)' : '#92400E') : 'var(--text-secondary)',
+    fontSize: 14,
+    fontWeight: 600,
+    cursor: 'pointer',
+    fontFamily: 'var(--font-body)',
+    textAlign: 'center' as const,
+  })
+
   function getRatingLabel(currentRating: number) {
     if (currentRating === 0) return 'Tap left or right side of a star'
     if (Number.isInteger(currentRating)) {
@@ -112,6 +133,10 @@ export function MarkTriedModal({ onSave, onClose, isRepeatVisit = false, initial
           width: '100%', maxWidth: 480,
           background: 'var(--bg-surface)',
           borderRadius: 'var(--radius-xl) var(--radius-xl) 0 0',
+          maxHeight: '92svh',
+          overflowY: 'auto',
+          overflowX: 'hidden',
+          WebkitOverflowScrolling: 'touch',
           padding: '20px 24px',
           paddingBottom: 'max(24px, env(safe-area-inset-bottom))',
           boxShadow: 'var(--shadow-xl)',
@@ -136,6 +161,32 @@ export function MarkTriedModal({ onSave, onClose, isRepeatVisit = false, initial
           <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
             {getRatingLabel(rating)}
           </span>
+        </div>
+
+        <div style={{ marginBottom: 24, padding: '16px', borderRadius: 'var(--radius-lg)', background: 'var(--bg-base)', border: '1px solid var(--border-subtle)' }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 14 }}>
+            Quick Verdict
+          </div>
+          <div style={{ display: 'grid', gap: 14 }}>
+            <div>
+              <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 8 }}>
+                Would go again?
+              </label>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button type="button" onClick={() => setWouldGoAgain(true)} style={choiceButtonStyle(wouldGoAgain === true, true)}>Yes, gladly</button>
+                <button type="button" onClick={() => setWouldGoAgain(false)} style={choiceButtonStyle(wouldGoAgain === false, false)}>Probably not</button>
+              </div>
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 8 }}>
+                Worth the money?
+              </label>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button type="button" onClick={() => setWorthTheMoney(true)} style={choiceButtonStyle(worthTheMoney === true, true)}>Yes, worth it</button>
+                <button type="button" onClick={() => setWorthTheMoney(false)} style={choiceButtonStyle(worthTheMoney === false, false)}>Too expensive</button>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 12, marginBottom: 20 }}>
@@ -290,7 +341,7 @@ export function MarkTriedModal({ onSave, onClose, isRepeatVisit = false, initial
             fontSize: 15, fontWeight: 500, cursor: 'pointer',
             fontFamily: 'var(--font-body)',
           }}>
-            Skip
+            {initialVisit ? 'Cancel' : 'Skip'}
           </button>
           <button onClick={handleSave} disabled={saving} style={{
             flex: 2, padding: '13px',

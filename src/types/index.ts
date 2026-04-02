@@ -28,6 +28,8 @@ export interface RestaurantVisit {
   notes?: string
   party_size?: number
   total_paid?: number
+  would_go_again?: boolean
+  worth_the_money?: boolean
   date_visited: string
   user_id?: string
   created_at: string
@@ -84,6 +86,8 @@ export type CreateVisitInput = {
   notes?: string
   party_size?: number
   total_paid?: number
+  would_go_again?: boolean
+  worth_the_money?: boolean
   date_visited?: string
 }
 

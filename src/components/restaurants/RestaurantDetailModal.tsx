@@ -18,6 +18,8 @@ export function RestaurantDetailModal({ restaurant, onClose, onAddVisit, onEditV
   const tried = restaurant.status === 'tried'
   const pricePerPerson = restaurant.average_spend_per_person ?? getAverageSpendPerPerson(restaurant.visits)
   const averageRating = restaurant.average_rating ?? getAverageRating(restaurant.visits)
+  const wouldGoAgainCount = restaurant.visits.filter((visit) => visit.would_go_again === true).length
+  const worthMoneyCount = restaurant.visits.filter((visit) => visit.worth_the_money === true).length
   const sheetRef = useRef<HTMLDivElement>(null)
   const touchStartYRef = useRef<number | null>(null)
   const [dragY, setDragY] = useState(0)
@@ -198,6 +200,27 @@ export function RestaurantDetailModal({ restaurant, onClose, onAddVisit, onEditV
             </div>
           )}
 
+          {restaurant.visits.length > 0 && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 10, marginBottom: 18 }}>
+              <div style={{ padding: '14px 16px', borderRadius: 'var(--radius-lg)', background: 'var(--bg-base)', border: '1px solid var(--border-subtle)' }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 6 }}>
+                  Would Go Again
+                </div>
+                <div style={{ fontSize: 18, fontWeight: 600, color: 'var(--text-primary)' }}>
+                  {wouldGoAgainCount}/{restaurant.visits.length}
+                </div>
+              </div>
+              <div style={{ padding: '14px 16px', borderRadius: 'var(--radius-lg)', background: 'var(--bg-base)', border: '1px solid var(--border-subtle)' }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 6 }}>
+                  Worth The Money
+                </div>
+                <div style={{ fontSize: 18, fontWeight: 600, color: 'var(--text-primary)' }}>
+                  {worthMoneyCount}/{restaurant.visits.length}
+                </div>
+              </div>
+            </div>
+          )}
+
           {restaurant.notes && (
             <div style={{ marginBottom: 18 }}>
               <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 8 }}>
@@ -303,6 +326,36 @@ export function RestaurantDetailModal({ restaurant, onClose, onAddVisit, onEditV
                           Edit
                         </button>
                       </div>
+                      {(visit.would_go_again !== undefined || visit.worth_the_money !== undefined) && (
+                        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: visit.notes ? 8 : 0 }}>
+                          {visit.would_go_again !== undefined && (
+                            <span style={{
+                              display: 'inline-flex',
+                              padding: '5px 9px',
+                              borderRadius: 'var(--radius-full)',
+                              fontSize: 12,
+                              fontWeight: 600,
+                              background: visit.would_go_again ? 'var(--accent-secondary-light)' : '#FEF3C7',
+                              color: visit.would_go_again ? 'var(--accent-secondary)' : '#92400E',
+                            }}>
+                              {visit.would_go_again ? 'Would go again' : 'Would not go again'}
+                            </span>
+                          )}
+                          {visit.worth_the_money !== undefined && (
+                            <span style={{
+                              display: 'inline-flex',
+                              padding: '5px 9px',
+                              borderRadius: 'var(--radius-full)',
+                              fontSize: 12,
+                              fontWeight: 600,
+                              background: visit.worth_the_money ? 'var(--accent-gold-light)' : '#FEE2E2',
+                              color: visit.worth_the_money ? '#9A6700' : '#B91C1C',
+                            }}>
+                              {visit.worth_the_money ? 'Worth the money' : 'Not worth the money'}
+                            </span>
+                          )}
+                        </div>
+                      )}
                       {visit.notes && (
                         <p style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--text-secondary)', whiteSpace: 'pre-wrap' }}>
                           {visit.notes}

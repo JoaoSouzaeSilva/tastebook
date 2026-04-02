@@ -200,6 +200,8 @@ export async function createVisit(id: string, input: CreateVisitInput = {}) {
     ...(input.notes !== undefined && { notes: input.notes }),
     ...(input.party_size !== undefined && { party_size: input.party_size }),
     ...(input.total_paid !== undefined && { total_paid: input.total_paid }),
+    ...(input.would_go_again !== undefined && { would_go_again: input.would_go_again }),
+    ...(input.worth_the_money !== undefined && { worth_the_money: input.worth_the_money }),
   }
 
   const { data: visit, error } = await supabase
@@ -236,6 +238,8 @@ export async function updateVisit(
       ...(input.notes !== undefined && { notes: input.notes }),
       ...(input.party_size !== undefined && { party_size: input.party_size }),
       ...(input.total_paid !== undefined && { total_paid: input.total_paid }),
+      ...(input.would_go_again !== undefined && { would_go_again: input.would_go_again }),
+      ...(input.worth_the_money !== undefined && { worth_the_money: input.worth_the_money }),
       ...(input.date_visited !== undefined && { date_visited: input.date_visited }),
     })
     .eq('id', visitId)

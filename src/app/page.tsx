@@ -195,8 +195,8 @@ export default function HomePage() {
       {editTarget && <RestaurantModal restaurant={editTarget} categories={categories} onSave={(data) => editRestaurant(editTarget.id, data)} onClose={() => setEditTargetId(null)} />}
       {triedTarget && (
         <MarkTriedModal
-          onSave={(rating, notes, partySize, totalPaid, dateVisited, reviewPhotos) =>
-            tryRestaurant(triedTarget.id, rating, notes, partySize, totalPaid, dateVisited, reviewPhotos)
+          onSave={(rating, notes, partySize, totalPaid, wouldGoAgain, worthTheMoney, dateVisited, reviewPhotos) =>
+            tryRestaurant(triedTarget.id, rating, notes, partySize, totalPaid, wouldGoAgain, worthTheMoney, dateVisited, reviewPhotos)
           }
           onClose={() => setTriedTargetId(null)}
           isRepeatVisit={triedTarget.status === 'tried'}
@@ -206,7 +206,7 @@ export default function HomePage() {
         <MarkTriedModal
           initialVisit={editingVisitTarget.visit}
           isRepeatVisit
-          onSave={(rating, notes, partySize, totalPaid, dateVisited, reviewPhotos) =>
+          onSave={(rating, notes, partySize, totalPaid, wouldGoAgain, worthTheMoney, dateVisited, reviewPhotos) =>
             editVisit(
               editingVisitTarget.restaurantId,
               editingVisitTarget.visit.id,
@@ -214,6 +214,8 @@ export default function HomePage() {
               notes,
               partySize,
               totalPaid,
+              wouldGoAgain,
+              worthTheMoney,
               dateVisited,
               reviewPhotos
             )

@@ -47,10 +47,15 @@ create table if not exists restaurant_visits (
   notes         text,
   party_size    int check (party_size >= 1),
   total_paid    numeric(10,2) check (total_paid >= 0),
+  would_go_again boolean,
+  worth_the_money boolean,
   date_visited  date not null default current_date,
   user_id       uuid references auth.users(id) on delete set null,
   created_at    timestamptz default now()
 );
+
+alter table restaurant_visits add column if not exists would_go_again boolean;
+alter table restaurant_visits add column if not exists worth_the_money boolean;
 
 -- ── Restaurant ↔ Categories (many-to-many) ───────────────────
 create table if not exists restaurant_categories (
