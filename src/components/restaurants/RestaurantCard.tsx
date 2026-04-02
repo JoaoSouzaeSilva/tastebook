@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import type { Restaurant } from '@/types'
+import { formatEuroAmount, getLatestVisit } from '@/lib/reviewStats'
 import { StarRating } from '../ui/StarRating'
 import { CategoryBadge } from '../ui/CategoryBadge'
 import { PriceIndicator } from '../ui/PriceIndicator'
@@ -19,8 +20,10 @@ interface RestaurantCardProps {
 export function RestaurantCard({ restaurant, onOpen, onEdit, onMarkTried, onDelete, onToggleFavorite, animationDelay = 0 }: RestaurantCardProps) {
   const [menuOpen, setMenuOpen] = useState(false)
   const tried = restaurant.status === 'tried'
+  const latestVisit = getLatestVisit(restaurant.visits)
+  const pricePerPerson = restaurant.average_spend_per_person ?? null
   const menuItems = [
-    !tried ? { label: '✓ Mark as tried', action: onMarkTried, color: 'var(--accent-secondary)' } : null,
+    { label: tried ? '+ Add visit' : '✓ Mark as tried', action: onMarkTried, color: 'var(--accent-secondary)' },
     restaurant.google_maps_link ? { label: '↗ Open in Maps', action: () => window.open(restaurant.google_maps_link, '_blank'), color: 'var(--text-primary)' } : null,
     { label: '✎ Edit', action: onEdit, color: 'var(--text-primary)' },
     { label: '✕ Delete', action: onDelete, color: '#E24B4A' },
@@ -193,8 +196,8 @@ export function RestaurantCard({ restaurant, onOpen, onEdit, onMarkTried, onDele
 
         {/* Rating + Price row */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-          {tried && restaurant.rating ? (
-            <StarRating value={restaurant.rating} readonly size="sm" />
+          {tried && restaurant.average_rating ? (
+            <StarRating value={restaurant.average_rating} readonly size="sm" />
           ) : (
             <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Not rated yet</span>
           )}
@@ -205,6 +208,18 @@ export function RestaurantCard({ restaurant, onOpen, onEdit, onMarkTried, onDele
             </>
           )}
         </div>
+
+        {pricePerPerson !== null && (
+          <div style={{ marginBottom: 10, fontSize: 12, color: 'var(--text-secondary)' }}>
+            Avg {formatEuroAmount(pricePerPerson)} per person
+          </div>
+        )}
+
+        {restaurant.visits.length > 1 && (
+          <div style={{ marginBottom: 10, fontSize: 12, color: 'var(--text-muted)' }}>
+            {restaurant.visits.length} visits logged
+          </div>
+        )}
 
         {/* Categories */}
         {restaurant.categories?.length > 0 && (
@@ -232,9 +247,9 @@ export function RestaurantCard({ restaurant, onOpen, onEdit, onMarkTried, onDele
           </p>
         )}
 
-        {restaurant.review_photos?.length > 0 && (
+        {latestVisit?.review_photos?.length ? (
           <div style={{ display: 'flex', gap: 6, marginBottom: 12, overflowX: 'auto' }}>
-            {restaurant.review_photos.slice(0, 4).map((photo) => (
+            {latestVisit.review_photos.slice(0, 4).map((photo) => (
               <div
                 key={photo.id}
                 style={{
@@ -247,7 +262,7 @@ export function RestaurantCard({ restaurant, onOpen, onEdit, onMarkTried, onDele
                 }}
               />
             ))}
-            {restaurant.review_photos.length > 4 && (
+            {latestVisit.review_photos.length > 4 && (
               <div
                 style={{
                   width: 56,
@@ -264,17 +279,17 @@ export function RestaurantCard({ restaurant, onOpen, onEdit, onMarkTried, onDele
                   flexShrink: 0,
                 }}
               >
-                +{restaurant.review_photos.length - 4}
+                +{latestVisit.review_photos.length - 4}
               </div>
             )}
           </div>
-        )}
+        ) : null}
 
         {/* Footer */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 }}>
-          {restaurant.date_visited ? (
+          {latestVisit?.date_visited ? (
             <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-              Visited {new Date(restaurant.date_visited).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+              Last visit {new Date(latestVisit.date_visited).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
             </span>
           ) : (
             <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
@@ -285,7 +300,10 @@ export function RestaurantCard({ restaurant, onOpen, onEdit, onMarkTried, onDele
           {/* Quick action */}
           {!tried && (
             <button
-              onClick={onMarkTried}
+              onClick={(e) => {
+                e.stopPropagation()
+                onMarkTried()
+              }}
               style={{
                 padding: '5px 12px',
                 borderRadius: 'var(--radius-full)',

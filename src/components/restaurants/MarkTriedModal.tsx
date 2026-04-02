@@ -1,16 +1,30 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import type { RestaurantVisit } from '@/types'
 import { StarRating } from '../ui/StarRating'
+import { formatEuroAmount, getPricePerPerson } from '@/lib/reviewStats'
 
 interface MarkTriedModalProps {
-  onSave: (rating?: number, notes?: string, reviewPhotos?: File[]) => Promise<void>
+  onSave: (
+    rating?: number,
+    notes?: string,
+    partySize?: number,
+    totalPaid?: number,
+    dateVisited?: string,
+    reviewPhotos?: File[]
+  ) => Promise<void>
   onClose: () => void
+  isRepeatVisit?: boolean
+  initialVisit?: RestaurantVisit | null
 }
 
-export function MarkTriedModal({ onSave, onClose }: MarkTriedModalProps) {
-  const [rating, setRating] = useState(0)
-  const [notes, setNotes] = useState('')
+export function MarkTriedModal({ onSave, onClose, isRepeatVisit = false, initialVisit = null }: MarkTriedModalProps) {
+  const [rating, setRating] = useState(initialVisit?.rating ?? 0)
+  const [notes, setNotes] = useState(initialVisit?.notes ?? '')
+  const [partySize, setPartySize] = useState(initialVisit?.party_size?.toString() ?? '')
+  const [totalPaid, setTotalPaid] = useState(initialVisit?.total_paid?.toString() ?? '')
+  const [dateVisited, setDateVisited] = useState(initialVisit?.date_visited ?? new Date().toISOString().split('T')[0])
   const [reviewPhotos, setReviewPhotos] = useState<File[]>([])
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -23,16 +37,62 @@ export function MarkTriedModal({ onSave, onClose }: MarkTriedModalProps) {
   }, [onClose])
 
   async function handleSave() {
+    const parsedPartySize = partySize ? Number.parseInt(partySize, 10) : undefined
+    const parsedTotalPaid = totalPaid ? Number.parseFloat(totalPaid) : undefined
+
+    if (parsedPartySize !== undefined && (!Number.isInteger(parsedPartySize) || parsedPartySize < 1)) {
+      setError('Number of people must be at least 1')
+      return
+    }
+
+    if (parsedTotalPaid !== undefined && (!Number.isFinite(parsedTotalPaid) || parsedTotalPaid < 0)) {
+      setError('Amount paid must be a valid number')
+      return
+    }
+
     setSaving(true)
     setError('')
     try {
-      await onSave(rating || undefined, notes || undefined, reviewPhotos)
+      await onSave(
+        rating || undefined,
+        notes || undefined,
+        parsedPartySize,
+        parsedTotalPaid,
+        dateVisited || undefined,
+        reviewPhotos
+      )
       onClose()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not save review')
     } finally {
       setSaving(false)
     }
+  }
+
+  const pricePerPerson = getPricePerPerson(
+    totalPaid ? Number.parseFloat(totalPaid) : undefined,
+    partySize ? Number.parseInt(partySize, 10) : undefined
+  )
+
+  const inputStyle = {
+    width: '100%',
+    padding: '12px 14px',
+    border: '1.5px solid var(--border-default)',
+    borderRadius: 'var(--radius-md)',
+    fontSize: 15,
+    background: 'var(--bg-base)',
+    color: 'var(--text-primary)',
+    outline: 'none',
+    fontFamily: 'var(--font-body)',
+  }
+
+  function getRatingLabel(currentRating: number) {
+    if (currentRating === 0) return 'Tap left or right side of a star'
+    if (Number.isInteger(currentRating)) {
+      return ['', 'Not great', 'It was okay', 'Pretty good', 'Really liked it', 'Absolutely loved it'][currentRating]
+    }
+
+    return `${currentRating.toFixed(1)} stars`
   }
 
   return (
@@ -66,7 +126,7 @@ export function MarkTriedModal({ onSave, onClose }: MarkTriedModalProps) {
         <div style={{ textAlign: 'center', marginBottom: 28 }}>
           <div style={{ fontSize: 48, marginBottom: 12 }}>🎉</div>
           <h2 className="font-display" style={{ fontSize: 24, fontWeight: 500, color: 'var(--text-primary)', marginBottom: 6 }}>
-            You tried it!
+            {initialVisit ? 'Edit visit' : isRepeatVisit ? 'Log this visit' : 'You tried it!'}
           </h2>
         </div>
 
@@ -74,16 +134,78 @@ export function MarkTriedModal({ onSave, onClose }: MarkTriedModalProps) {
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, marginBottom: 24 }}>
           <StarRating value={rating} onChange={setRating} size="lg" />
           <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
-            {rating === 0 ? 'Tap to rate' : ['', 'Not great', 'It was okay', 'Pretty good', 'Really liked it', 'Absolutely loved it'][rating]}
+            {getRatingLabel(rating)}
           </span>
         </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 12, marginBottom: 20 }}>
+          <div>
+            <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8 }}>
+              Number of people
+            </label>
+            <input
+              type="number"
+              min="1"
+              step="1"
+              inputMode="numeric"
+              value={partySize}
+              onChange={(e) => setPartySize(e.target.value)}
+              placeholder="2"
+              style={inputStyle}
+              onFocus={(e) => (e.target.style.borderColor = 'var(--accent-secondary)')}
+              onBlur={(e) => (e.target.style.borderColor = 'var(--border-default)')}
+            />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8 }}>
+              Total paid
+            </label>
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              inputMode="decimal"
+              value={totalPaid}
+              onChange={(e) => setTotalPaid(e.target.value)}
+              placeholder="48.00"
+              style={inputStyle}
+              onFocus={(e) => (e.target.style.borderColor = 'var(--accent-secondary)')}
+              onBlur={(e) => (e.target.style.borderColor = 'var(--border-default)')}
+            />
+          </div>
+        </div>
+
+        <div style={{ marginBottom: 20 }}>
+          <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8 }}>
+            Visit date
+          </label>
+          <input
+            type="date"
+            value={dateVisited}
+            onChange={(e) => setDateVisited(e.target.value)}
+            style={inputStyle}
+            onFocus={(e) => (e.target.style.borderColor = 'var(--accent-secondary)')}
+            onBlur={(e) => (e.target.style.borderColor = 'var(--border-default)')}
+          />
+        </div>
+
+        {pricePerPerson !== null && (
+          <div style={{ marginBottom: 24, padding: '12px 14px', borderRadius: 'var(--radius-md)', background: 'var(--accent-secondary-light)', color: 'var(--accent-secondary)' }}>
+            <div style={{ fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 4 }}>
+              Average spend
+            </div>
+            <div style={{ fontSize: 18, fontWeight: 600 }}>
+              {formatEuroAmount(pricePerPerson)} per person
+            </div>
+          </div>
+        )}
 
         {/* Notes */}
         <div style={{ marginBottom: 24 }}>
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            placeholder=""
+            placeholder="How was it?"
             style={{
               width: '100%', padding: '12px 14px',
               border: '1.5px solid var(--border-default)',
@@ -102,6 +224,26 @@ export function MarkTriedModal({ onSave, onClose }: MarkTriedModalProps) {
           <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8 }}>
             Photos from the visit
           </label>
+          {initialVisit && initialVisit.review_photos.length > 0 && (
+            <div style={{ marginBottom: 10, display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
+              {initialVisit.review_photos.map((photo) => (
+                <a
+                  key={photo.id}
+                  href={photo.image_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'block',
+                    width: '100%',
+                    aspectRatio: '1 / 1',
+                    borderRadius: 'var(--radius-md)',
+                    background: `url(${photo.image_url}) center/cover no-repeat`,
+                    border: '1px solid var(--border-subtle)',
+                  }}
+                />
+              ))}
+            </div>
+          )}
           <input
             type="file"
             accept="image/*"
@@ -161,7 +303,7 @@ export function MarkTriedModal({ onSave, onClose }: MarkTriedModalProps) {
             boxShadow: saving ? 'none' : '0 4px 12px rgba(45, 106, 79, 0.3)',
             transition: 'all 0.2s',
           }}>
-            {saving ? 'Saving…' : 'Save review'}
+            {saving ? 'Saving…' : initialVisit ? 'Save visit' : 'Save review'}
           </button>
         </div>
       </div>

@@ -1,8 +1,15 @@
 import { createClient } from './supabase/client'
-import type { CreateRestaurantInput, UpdateRestaurantInput, FilterState, CreateCategoryInput, ReviewPhoto, Restaurant } from '@/types'
+import type { CreateRestaurantInput, UpdateRestaurantInput, FilterState, CreateCategoryInput, ReviewPhoto, Restaurant, RestaurantVisit, CreateVisitInput, Category, UpdateVisitInput } from '@/types'
+import { getAverageRating, getAverageSpendPerPerson, getLatestVisit } from './reviewStats'
 
 const REVIEW_PHOTOS_BUCKET = 'restaurant-review-photos'
-type RestaurantCategoryJoin = { category: { id: string } }
+type RestaurantCategoryJoin = { category: Category }
+type VisitRow = RestaurantVisit
+type RestaurantRow = Restaurant & {
+  restaurant_categories?: RestaurantCategoryJoin[] | null
+  review_photos?: ReviewPhoto[] | null
+  visits?: VisitRow[] | null
+}
 
 function createUploadId() {
   if (typeof globalThis !== 'undefined' && globalThis.crypto && typeof globalThis.crypto.randomUUID === 'function') {
@@ -10,6 +17,37 @@ function createUploadId() {
   }
 
   return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
+}
+
+function normalizeRestaurant(row: RestaurantRow): Restaurant {
+  const visits = [...(row.visits ?? [])]
+    .map((visit) => ({
+      ...visit,
+      review_photos: (row.review_photos ?? []).filter((photo) => photo.visit_id === visit.id),
+    }))
+    .sort((a, b) => {
+      const dateDiff = new Date(b.date_visited).getTime() - new Date(a.date_visited).getTime()
+      if (dateDiff !== 0) return dateDiff
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    })
+
+  const latestVisit = getLatestVisit(visits)
+  const averageRating = getAverageRating(visits)
+  const averageSpendPerPerson = getAverageSpendPerPerson(visits)
+
+  return {
+    ...row,
+    rating: averageRating ?? latestVisit?.rating ?? row.rating,
+    notes: latestVisit?.notes ?? row.notes,
+    party_size: latestVisit?.party_size ?? row.party_size,
+    total_paid: latestVisit?.total_paid ?? row.total_paid,
+    date_visited: latestVisit?.date_visited ?? row.date_visited,
+    categories: (row.restaurant_categories ?? []).map((rc) => rc.category),
+    visits,
+    review_photos: row.review_photos ?? [],
+    average_rating: averageRating ?? undefined,
+    average_spend_per_person: averageSpendPerPerson ?? undefined,
+  }
 }
 
 export async function getRestaurants(filters: Partial<FilterState> = {}) {
@@ -21,6 +59,9 @@ export async function getRestaurants(filters: Partial<FilterState> = {}) {
       *,
       restaurant_categories (
         category:categories (*)
+      ),
+      visits:restaurant_visits (
+        *
       ),
       review_photos:restaurant_review_photos (
         *
@@ -55,11 +96,7 @@ export async function getRestaurants(filters: Partial<FilterState> = {}) {
 
   if (error) throw error
 
-  let restaurants: Restaurant[] = (data || []).map((r) => ({
-    ...r,
-    categories: ((r.restaurant_categories as RestaurantCategoryJoin[] | null | undefined) ?? []).map((rc) => rc.category),
-    review_photos: r.review_photos ?? [],
-  }))
+  let restaurants: Restaurant[] = (data || []).map((r) => normalizeRestaurant(r as RestaurantRow))
 
   if (filters.category_id) {
     restaurants = restaurants.filter((r) =>
@@ -75,11 +112,22 @@ export async function createRestaurant(input: CreateRestaurantInput) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Not authenticated')
 
-  const { category_ids, ...rest } = input
+  const { category_ids, rating, notes, party_size, total_paid, date_visited, ...rest } = input
 
   const { data: restaurant, error } = await supabase
     .from('restaurants')
-    .insert({ ...rest, user_id: user.id, status: rest.status ?? 'want_to_try' })
+    .insert({
+      ...rest,
+      user_id: user.id,
+      status: rest.status ?? 'want_to_try',
+      ...(rest.status === 'tried' && {
+        rating,
+        notes,
+        party_size,
+        total_paid,
+        date_visited,
+      }),
+    })
     .select()
     .single()
 
@@ -89,6 +137,16 @@ export async function createRestaurant(input: CreateRestaurantInput) {
     await supabase.from('restaurant_categories').insert(
       category_ids.map((cid) => ({ restaurant_id: restaurant.id, category_id: cid }))
     )
+  }
+
+  if (rest.status === 'tried') {
+    await createVisit(restaurant.id, {
+      rating,
+      notes,
+      party_size,
+      total_paid,
+      date_visited,
+    })
   }
 
   return restaurant
@@ -129,12 +187,98 @@ export async function toggleFavorite(id: string, value: boolean) {
   return updateRestaurant(id, { is_favorite: value })
 }
 
-export async function markAsTried(id: string, rating?: number, notes?: string) {
-  return updateRestaurant(id, {
+export async function createVisit(id: string, input: CreateVisitInput = {}) {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  const visitPayload = {
+    restaurant_id: id,
+    user_id: user.id,
+    date_visited: input.date_visited ?? new Date().toISOString().split('T')[0],
+    ...(input.rating !== undefined && { rating: input.rating }),
+    ...(input.notes !== undefined && { notes: input.notes }),
+    ...(input.party_size !== undefined && { party_size: input.party_size }),
+    ...(input.total_paid !== undefined && { total_paid: input.total_paid }),
+  }
+
+  const { data: visit, error } = await supabase
+    .from('restaurant_visits')
+    .insert(visitPayload)
+    .select()
+    .single()
+
+  if (error) throw error
+
+  await updateRestaurant(id, {
     status: 'tried',
-    date_visited: new Date().toISOString().split('T')[0],
-    ...(rating !== undefined && { rating }),
-    ...(notes !== undefined && { notes }),
+    date_visited: visit.date_visited,
+    ...(input.rating !== undefined && { rating: input.rating }),
+    ...(input.notes !== undefined && { notes: input.notes }),
+    ...(input.party_size !== undefined && { party_size: input.party_size }),
+    ...(input.total_paid !== undefined && { total_paid: input.total_paid }),
+  })
+
+  return visit
+}
+
+export async function updateVisit(
+  visitId: string,
+  restaurantId: string,
+  input: UpdateVisitInput = {}
+) {
+  const supabase = createClient()
+
+  const { data: visit, error } = await supabase
+    .from('restaurant_visits')
+    .update({
+      ...(input.rating !== undefined && { rating: input.rating }),
+      ...(input.notes !== undefined && { notes: input.notes }),
+      ...(input.party_size !== undefined && { party_size: input.party_size }),
+      ...(input.total_paid !== undefined && { total_paid: input.total_paid }),
+      ...(input.date_visited !== undefined && { date_visited: input.date_visited }),
+    })
+    .eq('id', visitId)
+    .select()
+    .single()
+
+  if (error) throw error
+
+  const { data: visitRows, error: visitsError } = await supabase
+    .from('restaurant_visits')
+    .select('*')
+    .eq('restaurant_id', restaurantId)
+
+  if (visitsError) throw visitsError
+
+  const visits = (visitRows ?? []) as RestaurantVisit[]
+  const latestVisit = getLatestVisit(visits)
+  const averageRating = getAverageRating(visits)
+
+  await updateRestaurant(restaurantId, {
+    status: 'tried',
+    date_visited: latestVisit?.date_visited,
+    rating: averageRating ?? undefined,
+    ...(latestVisit?.notes !== undefined && { notes: latestVisit.notes }),
+    ...(latestVisit?.party_size !== undefined && { party_size: latestVisit.party_size }),
+    ...(latestVisit?.total_paid !== undefined && { total_paid: latestVisit.total_paid }),
+  })
+
+  return visit
+}
+
+export async function markAsTried(
+  id: string,
+  rating?: number,
+  notes?: string,
+  partySize?: number,
+  totalPaid?: number
+) {
+  return createVisit(id, {
+    rating,
+    notes,
+    party_size: partySize,
+    total_paid: totalPaid,
   })
 }
 
@@ -185,7 +329,7 @@ export async function deleteCategory(id: string) {
   if (error) throw error
 }
 
-export async function uploadReviewPhotos(restaurantId: string, files: File[]) {
+export async function uploadReviewPhotos(restaurantId: string, files: File[], visitId?: string) {
   if (files.length === 0) return [] as ReviewPhoto[]
 
   const supabase = createClient()
@@ -222,6 +366,7 @@ export async function uploadReviewPhotos(restaurantId: string, files: File[]) {
     .insert(
       uploadedPhotos.map((photo) => ({
         restaurant_id: restaurantId,
+        ...(visitId ? { visit_id: visitId } : {}),
         image_url: photo.image_url,
         storage_path: photo.storage_path,
         user_id: user.id,

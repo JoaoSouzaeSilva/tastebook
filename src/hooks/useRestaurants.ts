@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { getRestaurants, getCategories, createRestaurant, updateRestaurant, deleteRestaurant, markAsTried, toggleFavorite, createCategory, updateCategory, deleteCategory, uploadReviewPhotos } from '@/lib/restaurants'
+import { getRestaurants, getCategories, createRestaurant, updateRestaurant, deleteRestaurant, createVisit, updateVisit, toggleFavorite, createCategory, updateCategory, deleteCategory, uploadReviewPhotos } from '@/lib/restaurants'
 import type { Restaurant, Category, FilterState, CreateRestaurantInput, UpdateRestaurantInput, CreateCategoryInput } from '@/types'
 
 const defaultFilters: FilterState = {
@@ -111,13 +111,56 @@ export function useRestaurants() {
     setAllRestaurants((prev) => prev.filter((r) => r.id !== id))
   }, [])
 
-  const tryRestaurant = useCallback(async (id: string, rating?: number, notes?: string, reviewPhotos: File[] = []) => {
-    await markAsTried(id, rating, notes)
-    if (reviewPhotos.length > 0) {
-      await uploadReviewPhotos(id, reviewPhotos)
-    }
-    await fetchAll()
-  }, [fetchAll])
+  const tryRestaurant = useCallback(
+    async (
+      id: string,
+      rating?: number,
+      notes?: string,
+      partySize?: number,
+      totalPaid?: number,
+      dateVisited?: string,
+      reviewPhotos: File[] = []
+    ) => {
+      const visit = await createVisit(id, {
+        rating,
+        notes,
+        party_size: partySize,
+        total_paid: totalPaid,
+        date_visited: dateVisited,
+      })
+      if (reviewPhotos.length > 0) {
+        await uploadReviewPhotos(id, reviewPhotos, visit.id)
+      }
+      await fetchAll()
+    },
+    [fetchAll]
+  )
+
+  const editVisit = useCallback(
+    async (
+      restaurantId: string,
+      visitId: string,
+      rating?: number,
+      notes?: string,
+      partySize?: number,
+      totalPaid?: number,
+      dateVisited?: string,
+      reviewPhotos: File[] = []
+    ) => {
+      await updateVisit(visitId, restaurantId, {
+        rating,
+        notes,
+        party_size: partySize,
+        total_paid: totalPaid,
+        date_visited: dateVisited,
+      })
+      if (reviewPhotos.length > 0) {
+        await uploadReviewPhotos(restaurantId, reviewPhotos, visitId)
+      }
+      await fetchAll()
+    },
+    [fetchAll]
+  )
 
   const addCategory = useCallback(async (input: CreateCategoryInput) => {
     await createCategory(input.name, input.color, input.icon)
@@ -172,6 +215,7 @@ export function useRestaurants() {
     editRestaurant,
     removeRestaurant,
     tryRestaurant,
+    editVisit,
     favoriteRestaurant,
     updateFilters,
     refetch: fetchAll,

@@ -17,12 +17,13 @@ import { FilterBar } from '@/components/restaurants/FilterBar'
 import { StatsBar } from '@/components/restaurants/StatsBar'
 import { EmptyState } from '@/components/restaurants/EmptyState'
 import { SkeletonCard } from '@/components/restaurants/SkeletonCard'
+import type { RestaurantVisit } from '@/types'
 
 export default function HomePage() {
   const { theme, toggle } = useTheme()
   const {
     allRestaurants, restaurants, categories, filters, loading, stats,
-    addRestaurant, addRestaurantsBulk, bulkUpdateRestaurantCategories, addCategory, editCategory, removeCategory, editRestaurant, removeRestaurant, tryRestaurant, favoriteRestaurant, updateFilters,
+    addRestaurant, addRestaurantsBulk, bulkUpdateRestaurantCategories, addCategory, editCategory, removeCategory, editRestaurant, removeRestaurant, tryRestaurant, editVisit, favoriteRestaurant, updateFilters,
   } = useRestaurants()
 
   const [addOpen, setAddOpen] = useState(false)
@@ -33,6 +34,7 @@ export default function HomePage() {
   const [detailTargetId, setDetailTargetId] = useState<string | null>(null)
   const [editTargetId, setEditTargetId] = useState<string | null>(null)
   const [triedTargetId, setTriedTargetId] = useState<string | null>(null)
+  const [editingVisitTarget, setEditingVisitTarget] = useState<{ restaurantId: string; visit: RestaurantVisit } | null>(null)
   const [userEmail, setUserEmail] = useState('')
 
   useEffect(() => {
@@ -165,9 +167,49 @@ export default function HomePage() {
       {bulkImportOpen && <BulkImportModal categories={categories} existingRestaurants={allRestaurants} onImport={addRestaurantsBulk} onClose={() => setBulkImportOpen(false)} />}
       {manageCategoriesOpen && <CategoryManagerModal categories={categories} onCreate={addCategory} onUpdate={editCategory} onDelete={removeCategory} onClose={() => setManageCategoriesOpen(false)} />}
       {bulkCategoryOpen && <BulkCategoryModal restaurants={restaurants} categories={categories} onApply={bulkUpdateRestaurantCategories} onClose={() => setBulkCategoryOpen(false)} />}
-      {detailTarget && <RestaurantDetailModal restaurant={detailTarget} onClose={() => setDetailTargetId(null)} />}
+      {detailTarget && (
+        <RestaurantDetailModal
+          restaurant={detailTarget}
+          onClose={() => setDetailTargetId(null)}
+          onAddVisit={() => {
+            setDetailTargetId(null)
+            setTriedTargetId(detailTarget.id)
+          }}
+          onEditVisit={(visit) => {
+            setDetailTargetId(null)
+            setEditingVisitTarget({ restaurantId: detailTarget.id, visit })
+          }}
+        />
+      )}
       {editTarget && <RestaurantModal restaurant={editTarget} categories={categories} onSave={(data) => editRestaurant(editTarget.id, data)} onClose={() => setEditTargetId(null)} />}
-      {triedTarget && <MarkTriedModal onSave={(rating, notes, reviewPhotos) => tryRestaurant(triedTarget.id, rating, notes, reviewPhotos)} onClose={() => setTriedTargetId(null)} />}
+      {triedTarget && (
+        <MarkTriedModal
+          onSave={(rating, notes, partySize, totalPaid, dateVisited, reviewPhotos) =>
+            tryRestaurant(triedTarget.id, rating, notes, partySize, totalPaid, dateVisited, reviewPhotos)
+          }
+          onClose={() => setTriedTargetId(null)}
+          isRepeatVisit={triedTarget.status === 'tried'}
+        />
+      )}
+      {editingVisitTarget && (
+        <MarkTriedModal
+          initialVisit={editingVisitTarget.visit}
+          isRepeatVisit
+          onSave={(rating, notes, partySize, totalPaid, dateVisited, reviewPhotos) =>
+            editVisit(
+              editingVisitTarget.restaurantId,
+              editingVisitTarget.visit.id,
+              rating,
+              notes,
+              partySize,
+              totalPaid,
+              dateVisited,
+              reviewPhotos
+            )
+          }
+          onClose={() => setEditingVisitTarget(null)}
+        />
+      )}
     </div>
   )
 }

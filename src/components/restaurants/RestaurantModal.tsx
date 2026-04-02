@@ -24,6 +24,8 @@ export function RestaurantModal({ restaurant, categories, onSave, onClose, initi
   const [rating, setRating] = useState(restaurant?.rating ?? 0)
   const [notes, setNotes] = useState(restaurant?.notes ?? '')
   const [price, setPrice] = useState<PriceLevel | undefined>(restaurant?.avg_price)
+  const [partySize, setPartySize] = useState(restaurant?.party_size?.toString() ?? '')
+  const [totalPaid, setTotalPaid] = useState(restaurant?.total_paid?.toString() ?? '')
   const [photoUrl, setPhotoUrl] = useState(restaurant?.photo_url ?? '')
   const [dateVisited, setDateVisited] = useState(restaurant?.date_visited ?? '')
   const [selectedCategories, setSelectedCategories] = useState<string[]>(restaurant?.categories?.map((c) => c.id) ?? [])
@@ -75,6 +77,20 @@ export function RestaurantModal({ restaurant, categories, onSave, onClose, initi
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!name.trim()) { setError('Name is required'); return }
+
+    const parsedPartySize = partySize ? Number.parseInt(partySize, 10) : undefined
+    const parsedTotalPaid = totalPaid ? Number.parseFloat(totalPaid) : undefined
+
+    if (parsedPartySize !== undefined && (!Number.isInteger(parsedPartySize) || parsedPartySize < 1)) {
+      setError('Number of people must be at least 1')
+      return
+    }
+
+    if (parsedTotalPaid !== undefined && (!Number.isFinite(parsedTotalPaid) || parsedTotalPaid < 0)) {
+      setError('Amount paid must be a valid number')
+      return
+    }
+
     setSaving(true)
     setError('')
     try {
@@ -86,6 +102,8 @@ export function RestaurantModal({ restaurant, categories, onSave, onClose, initi
         rating: rating || undefined,
         notes: notes || undefined,
         avg_price: price,
+        party_size: parsedPartySize,
+        total_paid: parsedTotalPaid,
         photo_url: photoUrl || undefined,
         date_visited: dateVisited || undefined,
         category_ids: selectedCategories,
@@ -325,6 +343,41 @@ export function RestaurantModal({ restaurant, categories, onSave, onClose, initi
                   onFocus={(e) => (e.target.style.borderColor = 'var(--accent-primary)')}
                   onBlur={(e) => (e.target.style.borderColor = 'var(--border-default)')}
                 />
+              </div>
+            )}
+
+            {status === 'tried' && (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 12 }}>
+                <div>
+                  <label style={labelStyle}>Number of people</label>
+                  <input
+                    type="number"
+                    min="1"
+                    step="1"
+                    inputMode="numeric"
+                    style={inputStyle}
+                    value={partySize}
+                    onChange={(e) => setPartySize(e.target.value)}
+                    placeholder="2"
+                    onFocus={(e) => (e.target.style.borderColor = 'var(--accent-primary)')}
+                    onBlur={(e) => (e.target.style.borderColor = 'var(--border-default)')}
+                  />
+                </div>
+                <div>
+                  <label style={labelStyle}>Total paid</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    inputMode="decimal"
+                    style={inputStyle}
+                    value={totalPaid}
+                    onChange={(e) => setTotalPaid(e.target.value)}
+                    placeholder="48.00"
+                    onFocus={(e) => (e.target.style.borderColor = 'var(--accent-primary)')}
+                    onBlur={(e) => (e.target.style.borderColor = 'var(--border-default)')}
+                  />
+                </div>
               </div>
             )}
 

@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import type { Restaurant } from '@/types'
+import type { Restaurant, RestaurantVisit } from '@/types'
+import { formatEuroAmount, getAverageRating, getAverageSpendPerPerson, getPricePerPerson } from '@/lib/reviewStats'
 import { StarRating } from '../ui/StarRating'
 import { PriceIndicator } from '../ui/PriceIndicator'
 import { CategoryBadge } from '../ui/CategoryBadge'
@@ -9,10 +10,14 @@ import { CategoryBadge } from '../ui/CategoryBadge'
 interface RestaurantDetailModalProps {
   restaurant: Restaurant
   onClose: () => void
+  onAddVisit: () => void
+  onEditVisit: (visit: RestaurantVisit) => void
 }
 
-export function RestaurantDetailModal({ restaurant, onClose }: RestaurantDetailModalProps) {
+export function RestaurantDetailModal({ restaurant, onClose, onAddVisit, onEditVisit }: RestaurantDetailModalProps) {
   const tried = restaurant.status === 'tried'
+  const pricePerPerson = restaurant.average_spend_per_person ?? getAverageSpendPerPerson(restaurant.visits)
+  const averageRating = restaurant.average_rating ?? getAverageRating(restaurant.visits)
   const sheetRef = useRef<HTMLDivElement>(null)
   const touchStartYRef = useRef<number | null>(null)
   const [dragY, setDragY] = useState(0)
@@ -134,7 +139,7 @@ export function RestaurantDetailModal({ restaurant, onClose }: RestaurantDetailM
             </h2>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 12 }}>
               {tried ? (
-                restaurant.rating ? <StarRating value={restaurant.rating} readonly size="sm" /> : <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>Not rated</span>
+                averageRating ? <StarRating value={averageRating} readonly size="sm" /> : <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>Not rated</span>
               ) : (
                 <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>Wishlist</span>
               )}
@@ -176,45 +181,27 @@ export function RestaurantDetailModal({ restaurant, onClose }: RestaurantDetailM
           </div>
         </div>
 
-        {restaurant.review_photos.length > 0 && (
-          <div style={{ padding: '4px 24px 0' }}>
-            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 10 }}>
-              Photos
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 10 }}>
-              {restaurant.review_photos.map((photo) => (
-                <a
-                  key={photo.id}
-                  href={photo.image_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    display: 'block',
-                    borderRadius: 'var(--radius-lg)',
-                    overflow: 'hidden',
-                    border: '1px solid var(--border-subtle)',
-                    background: 'var(--bg-base)',
-                    aspectRatio: '1 / 1',
-                  }}
-                >
-                  <div
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      background: `url(${photo.image_url}) center/cover no-repeat`,
-                    }}
-                  />
-                </a>
-              ))}
-            </div>
-          </div>
-        )}
-
         <div style={{ padding: '18px 24px 24px' }}>
+          {pricePerPerson !== null && (
+            <div style={{ marginBottom: 18, padding: '14px 16px', borderRadius: 'var(--radius-lg)', background: 'var(--bg-subtle)', border: '1px solid var(--border-subtle)' }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 8 }}>
+                Average spend
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14 }}>
+                <span style={{ fontSize: 15, color: 'var(--text-primary)' }}>
+                  {formatEuroAmount(pricePerPerson)} per person
+                </span>
+                <span style={{ fontSize: 15, color: 'var(--text-secondary)' }}>
+                  Across {restaurant.visits.length} visit{restaurant.visits.length === 1 ? '' : 's'}
+                </span>
+              </div>
+            </div>
+          )}
+
           {restaurant.notes && (
             <div style={{ marginBottom: 18 }}>
               <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 8 }}>
-                {tried ? 'Review' : 'Notes'}
+                Latest review
               </div>
               <p style={{ fontSize: 15, lineHeight: 1.7, color: 'var(--text-primary)', whiteSpace: 'pre-wrap' }}>
                 {restaurant.notes}
@@ -223,6 +210,25 @@ export function RestaurantDetailModal({ restaurant, onClose }: RestaurantDetailM
           )}
 
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            <button
+              onClick={onAddVisit}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '11px 14px',
+                borderRadius: 'var(--radius-full)',
+                border: 'none',
+                background: 'var(--accent-secondary)',
+                color: '#fff',
+                fontSize: 14,
+                fontWeight: 600,
+                cursor: 'pointer',
+                fontFamily: 'var(--font-body)',
+              }}
+            >
+              {tried ? 'Add another visit' : 'Mark as tried'}
+            </button>
             {restaurant.google_maps_link && (
               <a
                 href={restaurant.google_maps_link}
@@ -246,6 +252,88 @@ export function RestaurantDetailModal({ restaurant, onClose }: RestaurantDetailM
               </a>
             )}
           </div>
+
+          {restaurant.visits.length > 0 && (
+            <div style={{ marginTop: 22 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 10 }}>
+                Visit history
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {restaurant.visits.map((visit) => {
+                  const spendPerPerson = getPricePerPerson(visit.total_paid, visit.party_size)
+
+                  return (
+                    <div
+                      key={visit.id}
+                      style={{
+                        padding: '14px 16px',
+                        borderRadius: 'var(--radius-lg)',
+                        background: 'var(--bg-base)',
+                        border: '1px solid var(--border-subtle)',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 8 }}>
+                        <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>
+                          {new Date(visit.date_visited).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        </span>
+                        {visit.rating !== undefined && <StarRating value={visit.rating} readonly size="sm" />}
+                        {spendPerPerson !== null && (
+                          <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+                            {formatEuroAmount(spendPerPerson)} pp
+                          </span>
+                        )}
+                        {visit.review_photos.length > 0 && (
+                          <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+                            {visit.review_photos.length} photo{visit.review_photos.length === 1 ? '' : 's'}
+                          </span>
+                        )}
+                        <button
+                          onClick={() => onEditVisit(visit)}
+                          style={{
+                            marginLeft: 'auto',
+                            border: 'none',
+                            background: 'transparent',
+                            color: 'var(--accent-secondary)',
+                            fontSize: 13,
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            fontFamily: 'var(--font-body)',
+                          }}
+                        >
+                          Edit
+                        </button>
+                      </div>
+                      {visit.notes && (
+                        <p style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--text-secondary)', whiteSpace: 'pre-wrap' }}>
+                          {visit.notes}
+                        </p>
+                      )}
+                      {visit.review_photos.length > 0 && (
+                        <div style={{ marginTop: 10, display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8 }}>
+                          {visit.review_photos.map((photo) => (
+                            <a
+                              key={photo.id}
+                              href={photo.image_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{
+                                display: 'block',
+                                borderRadius: 'var(--radius-md)',
+                                overflow: 'hidden',
+                                border: '1px solid var(--border-subtle)',
+                                aspectRatio: '1 / 1',
+                                background: `url(${photo.image_url}) center/cover no-repeat`,
+                              }}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
