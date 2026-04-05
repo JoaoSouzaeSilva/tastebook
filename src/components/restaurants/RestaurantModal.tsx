@@ -91,6 +91,11 @@ export function RestaurantModal({ restaurant, categories, onSave, onClose, initi
       return
     }
 
+    if (status === 'tried' && rating <= 0) {
+      setError('Add some stars before saving your review')
+      return
+    }
+
     setSaving(true)
     setError('')
     try {
@@ -99,7 +104,7 @@ export function RestaurantModal({ restaurant, categories, onSave, onClose, initi
         google_maps_link: mapsLink || undefined,
         address: address || undefined,
         status,
-        rating: rating || undefined,
+        rating: status === 'tried' ? rating : undefined,
         notes: notes || undefined,
         avg_price: price,
         party_size: parsedPartySize,

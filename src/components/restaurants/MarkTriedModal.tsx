@@ -44,6 +44,11 @@ export function MarkTriedModal({ onSave, onClose, isRepeatVisit = false, initial
     const parsedPartySize = partySize ? Number.parseInt(partySize, 10) : undefined
     const parsedTotalPaid = totalPaid ? Number.parseFloat(totalPaid) : undefined
 
+    if (rating <= 0) {
+      setError('Add some stars before saving your review')
+      return
+    }
+
     if (parsedPartySize !== undefined && (!Number.isInteger(parsedPartySize) || parsedPartySize < 1)) {
       setError('Number of people must be at least 1')
       return
@@ -58,7 +63,7 @@ export function MarkTriedModal({ onSave, onClose, isRepeatVisit = false, initial
     setError('')
     try {
       await onSave(
-        rating || undefined,
+        rating,
         notes || undefined,
         parsedPartySize,
         parsedTotalPaid,

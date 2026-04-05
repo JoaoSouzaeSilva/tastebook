@@ -19,6 +19,20 @@ function createUploadId() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
 }
 
+function validateVisitInput(input: CreateVisitInput | UpdateVisitInput) {
+  if (input.rating === undefined || input.rating <= 0) {
+    throw new Error('Add some stars before saving your review')
+  }
+
+  if (input.party_size !== undefined && (!Number.isInteger(input.party_size) || input.party_size < 1)) {
+    throw new Error('Number of people must be at least 1')
+  }
+
+  if (input.total_paid !== undefined && (!Number.isFinite(input.total_paid) || input.total_paid < 0)) {
+    throw new Error('Amount paid must be a valid number')
+  }
+}
+
 function normalizeRestaurant(row: RestaurantRow): Restaurant {
   const visits = [...(row.visits ?? [])]
     .map((visit) => ({
@@ -38,10 +52,10 @@ function normalizeRestaurant(row: RestaurantRow): Restaurant {
   return {
     ...row,
     rating: averageRating ?? latestVisit?.rating ?? row.rating,
-    notes: latestVisit?.notes ?? row.notes,
-    party_size: latestVisit?.party_size ?? row.party_size,
-    total_paid: latestVisit?.total_paid ?? row.total_paid,
-    date_visited: latestVisit?.date_visited ?? row.date_visited,
+    notes: latestVisit ? latestVisit.notes : row.notes,
+    party_size: latestVisit ? latestVisit.party_size : row.party_size,
+    total_paid: latestVisit ? latestVisit.total_paid : row.total_paid,
+    date_visited: latestVisit ? latestVisit.date_visited : row.date_visited,
     categories: (row.restaurant_categories ?? []).map((rc) => rc.category),
     visits,
     review_photos: row.review_photos ?? [],
@@ -64,14 +78,20 @@ async function syncRestaurantSummary(restaurantId: string) {
   const latestVisit = getLatestVisit(visits)
   const averageRating = getAverageRating(visits)
 
-  await updateRestaurant(restaurantId, {
-    status: visits.length > 0 ? 'tried' : 'want_to_try',
-    date_visited: latestVisit?.date_visited,
-    rating: averageRating ?? undefined,
-    notes: latestVisit?.notes ?? undefined,
-    party_size: latestVisit?.party_size,
-    total_paid: latestVisit?.total_paid,
-  })
+  const { error: summaryError } = await supabase
+    .from('restaurants')
+    .update({
+      status: visits.length > 0 ? 'tried' : 'want_to_try',
+      date_visited: latestVisit?.date_visited ?? null,
+      rating: averageRating ?? null,
+      notes: latestVisit?.notes ?? null,
+      party_size: latestVisit?.party_size ?? null,
+      total_paid: latestVisit?.total_paid ?? null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', restaurantId)
+
+  if (summaryError) throw summaryError
 }
 
 export async function getRestaurants(filters: Partial<FilterState> = {}) {
@@ -137,6 +157,16 @@ export async function createRestaurant(input: CreateRestaurantInput) {
   if (!user) throw new Error('Not authenticated')
 
   const { category_ids, rating, notes, party_size, total_paid, date_visited, ...rest } = input
+
+  if (rest.status === 'tried') {
+    validateVisitInput({
+      rating,
+      notes,
+      party_size,
+      total_paid,
+      date_visited,
+    })
+  }
 
   const { data: restaurant, error } = await supabase
     .from('restaurants')
@@ -216,6 +246,8 @@ export async function createVisit(id: string, input: CreateVisitInput = {}) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Not authenticated')
 
+  validateVisitInput(input)
+
   const visitPayload = {
     restaurant_id: id,
     user_id: user.id,
@@ -247,6 +279,8 @@ export async function updateVisit(
   input: UpdateVisitInput = {}
 ) {
   const supabase = createClient()
+
+  validateVisitInput(input)
 
   const { data: visit, error } = await supabase
     .from('restaurant_visits')

@@ -177,9 +177,16 @@ export function useRestaurants() {
         worth_the_money: worthTheMoney,
         date_visited: dateVisited,
       })
-      if (reviewPhotos.length > 0) {
-        await uploadReviewPhotos(id, reviewPhotos, visit.id)
+
+      try {
+        if (reviewPhotos.length > 0) {
+          await uploadReviewPhotos(id, reviewPhotos, visit.id)
+        }
+      } catch (error) {
+        await deleteVisit(visit.id, id)
+        throw error
       }
+
       await fetchAll()
     },
     [fetchAll]
