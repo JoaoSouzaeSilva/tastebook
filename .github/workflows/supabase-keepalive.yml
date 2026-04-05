@@ -8,6 +8,7 @@ on:
 jobs:
   keepalive:
     runs-on: ubuntu-latest
+    environment: Production - tastebook
 
     steps:
       - name: Check out repository
