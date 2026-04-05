@@ -16,6 +16,18 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+## Supabase Keepalive
+
+This repo includes a GitHub Actions workflow at `.github/workflows/supabase-keepalive.yml` that records a heartbeat in the `app_keepalive_heartbeats` table every Monday and Thursday.
+
+To enable it:
+
+1. Run the SQL in `supabase/migrations/20260405_001_add_app_keepalive_heartbeats.sql` on your Supabase project.
+2. Add these GitHub repository secrets:
+   - `SUPABASE_URL`
+   - `SUPABASE_SERVICE_ROLE_KEY`
+3. Optionally run the workflow manually once with `workflow_dispatch` to verify it works before relying on the schedule.
+
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
