@@ -48,3 +48,15 @@ if (error) {
 }
 
 console.log(`Heartbeat recorded at ${data.last_seen_at}`)
+
+// Also perform a read so activity is not limited to a single-row upsert,
+// in case Supabase's inactivity scan weighs request variety.
+const { count, error: countError } = await supabase
+  .from('restaurants')
+  .select('*', { count: 'exact', head: true })
+
+if (countError) {
+  throw countError
+}
+
+console.log(`Activity check OK — ${count} restaurants in the database`)
