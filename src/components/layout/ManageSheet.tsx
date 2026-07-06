@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { Sheet, SheetBody } from '../ui/Sheet'
 
 type ManageAction = {
   label: string
@@ -14,50 +14,9 @@ interface ManageSheetProps {
 }
 
 export function ManageSheet({ actions, onClose }: ManageSheetProps) {
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
-    }
-
-    document.addEventListener('keydown', onKey)
-    document.body.style.overflow = 'hidden'
-
-    return () => {
-      document.removeEventListener('keydown', onKey)
-      document.body.style.overflow = ''
-    }
-  }, [onClose])
-
   return (
-    <div
-      className="animate-fade-in"
-      onClick={onClose}
-      style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 120,
-        background: 'rgba(0,0,0,0.45)',
-        display: 'flex',
-        alignItems: 'flex-end',
-        justifyContent: 'center',
-      }}
-    >
-      <div
-        className="animate-fade-up"
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          width: '100%',
-          maxWidth: 560,
-          background: 'var(--bg-surface)',
-          borderRadius: 'var(--radius-xl) var(--radius-xl) 0 0',
-          boxShadow: 'var(--shadow-xl)',
-          padding: '12px 20px max(20px, env(safe-area-inset-bottom))',
-        }}
-      >
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 14 }}>
-          <div style={{ width: 36, height: 4, borderRadius: 999, background: 'var(--border-default)' }} />
-        </div>
-
+    <Sheet onClose={onClose}>
+      <SheetBody style={{ padding: '4px 20px max(20px, env(safe-area-inset-bottom))' }}>
         <div style={{ padding: '4px 4px 14px' }}>
           <h2 className="font-display" style={{ fontSize: 24, color: 'var(--text-primary)', marginBottom: 4 }}>
             Manage Tastebook
@@ -107,7 +66,7 @@ export function ManageSheet({ actions, onClose }: ManageSheetProps) {
         >
           Close
         </button>
-      </div>
-    </div>
+      </SheetBody>
+    </Sheet>
   )
 }

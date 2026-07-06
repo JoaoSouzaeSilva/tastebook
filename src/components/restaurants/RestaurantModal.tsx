@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import type { Restaurant, Category, CreateRestaurantInput, PriceLevel } from '@/types'
 import { StarRating } from '../ui/StarRating'
 import { PriceIndicator } from '../ui/PriceIndicator'
 import { CategoryBadge } from '../ui/CategoryBadge'
+import { Sheet, SheetHeader, SheetBody, SheetFooter } from '../ui/Sheet'
 
 interface RestaurantModalProps {
   restaurant?: Restaurant | null
@@ -33,17 +34,6 @@ export function RestaurantModal({ restaurant, categories, onSave, onClose, initi
   const [error, setError] = useState('')
   const [fetchingPlace, setFetchingPlace] = useState(false)
   const [placeError, setPlaceError] = useState('')
-
-  // Trap focus / close on escape
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
-    document.addEventListener('keydown', onKey)
-    document.body.style.overflow = 'hidden'
-    return () => {
-      document.removeEventListener('keydown', onKey)
-      document.body.style.overflow = ''
-    }
-  }, [onClose])
 
   async function fetchPlaceDetails() {
     if (!mapsLink.trim()) return
@@ -139,52 +129,11 @@ export function RestaurantModal({ restaurant, categories, onSave, onClose, initi
   }
 
   return (
-    <div
-      className="animate-fade-in"
-      onClick={onClose}
-      style={{
-        position: 'fixed', inset: 0, zIndex: 100,
-        background: 'rgba(0,0,0,0.5)',
-        display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
-        padding: '0',
-      }}
-    >
-      <div
-        className="animate-fade-up"
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          width: '100%', maxWidth: 560,
-          background: 'var(--bg-surface)',
-          borderRadius: 'var(--radius-xl) var(--radius-xl) 0 0',
-          maxHeight: '92svh',
-          display: 'flex', flexDirection: 'column',
-          boxShadow: 'var(--shadow-xl)',
-        }}
-      >
-        {/* Handle */}
-        <div style={{ padding: '12px 0 0', display: 'flex', justifyContent: 'center' }}>
-          <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--border-default)' }} />
-        </div>
+    <Sheet onClose={onClose} dismissable={!saving}>
+      <SheetHeader title={isEdit ? 'Edit restaurant' : 'Add restaurant'} onClose={onClose} />
 
-        {/* Header */}
-        <div style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '16px 24px',
-          borderBottom: '1px solid var(--border-subtle)',
-        }}>
-          <h2 className="font-display" style={{ fontSize: 22, fontWeight: 500, color: 'var(--text-primary)' }}>
-            {isEdit ? 'Edit restaurant' : 'Add restaurant'}
-          </h2>
-          <button onClick={onClose} style={{
-            width: 32, height: 32, borderRadius: 'var(--radius-full)',
-            border: '1px solid var(--border-default)', background: 'var(--bg-subtle)',
-            cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: 'var(--text-secondary)', fontSize: 18, lineHeight: 1,
-          }}>×</button>
-        </div>
-
-        {/* Scrollable body */}
-        <form onSubmit={handleSubmit} style={{ flex: 1, overflowY: 'auto', padding: '20px 24px 0' }}>
+      <SheetBody>
+        <form onSubmit={handleSubmit} style={{ padding: '20px 24px' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
 
             {/* Name */}
@@ -421,15 +370,10 @@ export function RestaurantModal({ restaurant, categories, onSave, onClose, initi
             )}
           </div>
         </form>
+      </SheetBody>
 
-        {/* Footer */}
-        <div style={{
-          padding: '16px 24px',
-          paddingBottom: 'max(16px, env(safe-area-inset-bottom))',
-          borderTop: '1px solid var(--border-subtle)',
-          display: 'flex', gap: 10,
-        }}>
-          <button onClick={onClose} type="button" style={{
+      <SheetFooter>
+        <button onClick={onClose} type="button" style={{
             flex: 1, padding: '13px',
             borderRadius: 'var(--radius-md)',
             border: '1.5px solid var(--border-default)',
@@ -456,8 +400,7 @@ export function RestaurantModal({ restaurant, categories, onSave, onClose, initi
           >
             {saving ? 'Saving…' : isEdit ? 'Save changes' : 'Add restaurant'}
           </button>
-        </div>
-      </div>
-    </div>
+      </SheetFooter>
+    </Sheet>
   )
 }

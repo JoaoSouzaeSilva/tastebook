@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useRestaurants } from '@/hooks/useRestaurants'
 import { ManageSheet } from '@/components/layout/ManageSheet'
 import { useTheme } from '@/components/layout/ThemeProvider'
+import { BottomNav, type AppTab } from '@/components/layout/BottomNav'
 import { RestaurantCard } from '@/components/restaurants/RestaurantCard'
 import { RestaurantModal } from '@/components/restaurants/RestaurantModal'
 import { RestaurantDetailModal } from '@/components/restaurants/RestaurantDetailModal'
@@ -14,7 +15,7 @@ import { BulkCategoryModal } from '@/components/restaurants/BulkCategoryModal'
 import { BulkImportModal } from '@/components/restaurants/BulkImportModal'
 import { MarkTriedModal } from '@/components/restaurants/MarkTriedModal'
 import { FilterBar } from '@/components/restaurants/FilterBar'
-import { StatsBar } from '@/components/restaurants/StatsBar'
+import { StatsView } from '@/components/restaurants/StatsView'
 import { EmptyState } from '@/components/restaurants/EmptyState'
 import { SkeletonCard } from '@/components/restaurants/SkeletonCard'
 import type { RestaurantVisit } from '@/types'
@@ -26,6 +27,7 @@ export default function HomePage() {
     addRestaurant, addRestaurantsBulk, bulkUpdateRestaurantCategories, addCategory, editCategory, removeCategory, editRestaurant, removeRestaurant, tryRestaurant, editVisit, removeVisit, favoriteRestaurant, updateFilters,
   } = useRestaurants()
 
+  const [tab, setTab] = useState<AppTab>('places')
   const [addOpen, setAddOpen] = useState(false)
   const [bulkImportOpen, setBulkImportOpen] = useState(false)
   const [bulkCategoryOpen, setBulkCategoryOpen] = useState(false)
@@ -85,64 +87,82 @@ export default function HomePage() {
 
   return (
     <div style={{ minHeight: '100svh', background: 'var(--bg-base)', maxWidth: 640, margin: '0 auto', overflowX: 'hidden', width: '100%' }}>
-      <header className="glass" style={{ position: 'sticky', top: 0, zIndex: 40, padding: 'max(env(safe-area-inset-top), 0px) 16px 0', borderBottom: '1px solid var(--border-subtle)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 0' }}>
+      <header
+        className="glass"
+        style={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 40,
+          padding: 'max(env(safe-area-inset-top), 0px) 16px 0',
+          borderBottom: '1px solid var(--border-subtle)',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 0' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ width: 44, height: 44, borderRadius: 'var(--radius-md)', overflow: 'hidden', boxShadow: '0 2px 8px rgba(200,92,56,0.25)', flexShrink: 0, background: 'var(--bg-subtle)', border: '1px solid rgba(200,92,56,0.12)' }}>
+            <div
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: 'var(--radius-md)',
+                overflow: 'hidden',
+                boxShadow: '0 2px 8px rgba(200,92,56,0.25)',
+                flexShrink: 0,
+                background: 'var(--bg-subtle)',
+                border: '1px solid rgba(200,92,56,0.12)',
+              }}
+            >
               <Image
                 src="/tastebook.png"
                 alt="Tastebook"
-                width={44}
-                height={44}
+                width={36}
+                height={36}
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                priority
+                preload
               />
             </div>
             <div>
-              <h1 className="font-display" style={{ fontSize: 20, fontWeight: 500, color: 'var(--text-primary)', lineHeight: 1.1 }}>Tastebook</h1>
-              <p style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1 }}>{userEmail ? userEmail.split('@')[0] : 'Our list'}</p>
+              <h1 className="font-display" style={{ fontSize: 19, fontWeight: 500, color: 'var(--text-primary)', lineHeight: 1.1 }}>
+                {tab === 'places' ? 'Tastebook' : 'Stats'}
+              </h1>
+              <p style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.2 }}>
+                {userEmail ? userEmail.split('@')[0] : 'Our list'}
+              </p>
             </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <button
-              onClick={() => setManageSheetOpen(true)}
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: 'var(--radius-full)',
-                border: '1px solid var(--border-default)',
-                background: 'var(--bg-surface)',
-                color: 'var(--text-secondary)',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-              }}
-              aria-label="Open manage menu"
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-                <circle cx="5" cy="12" r="1.2" fill="currentColor" />
-                <circle cx="12" cy="12" r="1.2" fill="currentColor" />
-                <circle cx="19" cy="12" r="1.2" fill="currentColor" />
-              </svg>
-            </button>
-            <button onClick={() => setAddOpen(true)} style={{ width: 40, height: 40, borderRadius: 'var(--radius-full)', border: 'none', background: 'linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-primary-dark) 100%)', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 14px rgba(200,92,56,0.28)', flexShrink: 0 }} aria-label="Add restaurant">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.4" strokeLinecap="round">
-                <line x1="12" y1="5" x2="12" y2="19"/>
-                <line x1="5" y1="12" x2="19" y2="12"/>
-              </svg>
-            </button>
+          <button
+            onClick={() => setManageSheetOpen(true)}
+            style={{
+              width: 38,
+              height: 38,
+              borderRadius: 'var(--radius-full)',
+              border: '1px solid var(--border-default)',
+              background: 'var(--bg-surface)',
+              color: 'var(--text-secondary)',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}
+            aria-label="Open manage menu"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+              <circle cx="5" cy="12" r="1.6" />
+              <circle cx="12" cy="12" r="1.6" />
+              <circle cx="19" cy="12" r="1.6" />
+            </svg>
+          </button>
+        </div>
+        {tab === 'places' && (
+          <div style={{ paddingBottom: 10 }}>
+            <FilterBar filters={filters} categories={categories} onChange={updateFilters} counts={allCounts} />
           </div>
-        </div>
-        <div style={{ paddingBottom: 12 }}>
-          <FilterBar filters={filters} categories={categories} onChange={updateFilters} counts={allCounts} />
-        </div>
+        )}
       </header>
 
-      {!loading && stats.total > 0 && (
-        <div style={{ padding: '16px 0 8px' }}>
-          <StatsBar
+      <main style={{ padding: '14px 16px', paddingBottom: 'calc(96px + env(safe-area-inset-bottom))' }}>
+        {tab === 'stats' ? (
+          <StatsView
             total={overviewStats.total}
             tried={overviewStats.tried}
             wantToTry={overviewStats.wantToTry}
@@ -154,24 +174,31 @@ export default function HomePage() {
             topCategory={overviewStats.topCategory}
             thisMonthVisits={overviewStats.thisMonthVisits}
           />
-        </div>
-      )}
-
-      <main style={{ padding: '12px 16px', paddingBottom: 100 }}>
-        {loading ? (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 14 }}>
-            {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
+        ) : loading ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {Array.from({ length: 6 }).map((_, i) => (
+              <SkeletonCard key={i} />
+            ))}
           </div>
         ) : restaurants.length === 0 ? (
-          <EmptyState status={filters.status} onAdd={() => setAddOpen(true)} />
+          <EmptyState status={filters.status} searching={Boolean(filters.search || filters.category_id)} onAdd={() => setAddOpen(true)} />
         ) : (
-          <div className="stagger-children" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 14 }}>
+          <div className="stagger-children" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {restaurants.map((r, i) => (
-              <RestaurantCard key={r.id} restaurant={r} animationDelay={i * 60} onOpen={() => setDetailTargetId(r.id)} onEdit={() => setEditTargetId(r.id)} onMarkTried={() => setTriedTargetId(r.id)} onToggleFavorite={() => favoriteRestaurant(r.id, !r.is_favorite)} onDelete={async () => { if (confirm(`Delete "${r.name}"?`)) await removeRestaurant(r.id) }} />
+              <RestaurantCard
+                key={r.id}
+                restaurant={r}
+                animationDelay={Math.min(i, 8) * 40}
+                onOpen={() => setDetailTargetId(r.id)}
+                onMarkTried={() => setTriedTargetId(r.id)}
+                onToggleFavorite={() => favoriteRestaurant(r.id, !r.is_favorite)}
+              />
             ))}
           </div>
         )}
       </main>
+
+      <BottomNav tab={tab} onTabChange={setTab} onAdd={() => setAddOpen(true)} />
 
       {manageSheetOpen && <ManageSheet actions={manageActions} onClose={() => setManageSheetOpen(false)} />}
       {addOpen && <RestaurantModal categories={categories} onSave={addRestaurant} onClose={() => setAddOpen(false)} />}
@@ -185,6 +212,15 @@ export default function HomePage() {
           onAddVisit={() => {
             setDetailTargetId(null)
             setTriedTargetId(detailTarget.id)
+          }}
+          onEdit={() => {
+            setDetailTargetId(null)
+            setEditTargetId(detailTarget.id)
+          }}
+          onDelete={async () => {
+            if (!confirm(`Delete "${detailTarget.name}"?`)) return
+            setDetailTargetId(null)
+            await removeRestaurant(detailTarget.id)
           }}
           onEditVisit={(visit) => {
             setDetailTargetId(null)

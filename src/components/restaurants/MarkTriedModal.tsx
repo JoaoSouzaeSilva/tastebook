@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import type { RestaurantVisit } from '@/types'
 import { StarRating } from '../ui/StarRating'
 import { formatEuroAmount, getPricePerPerson } from '@/lib/reviewStats'
+import { Sheet, SheetBody, SheetFooter } from '../ui/Sheet'
 
 interface MarkTriedModalProps {
   onSave: (
@@ -32,13 +33,6 @@ export function MarkTriedModal({ onSave, onClose, isRepeatVisit = false, initial
   const [reviewPhotos, setReviewPhotos] = useState<File[]>([])
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
-    document.addEventListener('keydown', onKey)
-    document.body.style.overflow = 'hidden'
-    return () => { document.removeEventListener('keydown', onKey); document.body.style.overflow = '' }
-  }, [onClose])
 
   async function handleSave() {
     const parsedPartySize = partySize ? Number.parseInt(partySize, 10) : undefined
@@ -122,36 +116,8 @@ export function MarkTriedModal({ onSave, onClose, isRepeatVisit = false, initial
   }
 
   return (
-    <div
-      className="animate-fade-in"
-      onClick={onClose}
-      style={{
-        position: 'fixed', inset: 0, zIndex: 100,
-        background: 'rgba(0,0,0,0.5)',
-        display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
-      }}
-    >
-      <div
-        className="animate-fade-up"
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          width: '100%', maxWidth: 480,
-          background: 'var(--bg-surface)',
-          borderRadius: 'var(--radius-xl) var(--radius-xl) 0 0',
-          maxHeight: '92svh',
-          overflowY: 'auto',
-          overflowX: 'hidden',
-          WebkitOverflowScrolling: 'touch',
-          padding: '20px 24px',
-          paddingBottom: 'max(24px, env(safe-area-inset-bottom))',
-          boxShadow: 'var(--shadow-xl)',
-        }}
-      >
-        {/* Handle */}
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 20 }}>
-          <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--border-default)' }} />
-        </div>
-
+    <Sheet onClose={onClose} maxWidth={480} dismissable={!saving}>
+      <SheetBody style={{ padding: '12px 24px 24px' }}>
         {/* Celebration header */}
         <div style={{ textAlign: 'center', marginBottom: 28 }}>
           <div style={{ fontSize: 48, marginBottom: 12 }}>🎉</div>
@@ -331,13 +297,13 @@ export function MarkTriedModal({ onSave, onClose, isRepeatVisit = false, initial
         </div>
 
         {error && (
-          <div style={{ marginBottom: 16, padding: '10px 12px', borderRadius: 'var(--radius-md)', background: '#FEF2F2', color: '#B91C1C', fontSize: 13 }}>
+          <div style={{ padding: '10px 12px', borderRadius: 'var(--radius-md)', background: '#FEF2F2', color: '#B91C1C', fontSize: 13 }}>
             {error}
           </div>
         )}
+      </SheetBody>
 
-        {/* Actions */}
-        <div style={{ display: 'flex', gap: 10 }}>
+      <SheetFooter>
           <button onClick={onClose} style={{
             flex: 1, padding: '13px',
             borderRadius: 'var(--radius-md)',
@@ -361,8 +327,7 @@ export function MarkTriedModal({ onSave, onClose, isRepeatVisit = false, initial
           }}>
             {saving ? 'Saving…' : initialVisit ? 'Save visit' : 'Save review'}
           </button>
-        </div>
-      </div>
-    </div>
+      </SheetFooter>
+    </Sheet>
   )
 }

@@ -93,6 +93,9 @@ body { min-height: 100svh; background-color: var(--bg-base); overflow-x: hidden;
 .stagger-children > *:nth-child(5) { animation-delay: 240ms; }
 .stagger-children > *:nth-child(6) { animation-delay: 300ms; }
 
+.no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
 .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 16px); }
 .safe-top    { padding-top:    env(safe-area-inset-top, 0px); }
 * { -webkit-tap-highlight-color: transparent; }
