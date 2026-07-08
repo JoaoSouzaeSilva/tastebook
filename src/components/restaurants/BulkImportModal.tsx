@@ -118,6 +118,8 @@ export function BulkImportModal({ categories, existingRestaurants, onImport, onC
           error?: string
           name?: string
           address?: string
+          place_id?: string
+          google_maps_link?: string
           avg_price?: CreateRestaurantInput['avg_price']
           photo_url?: string
           primary_type?: string
@@ -156,7 +158,8 @@ export function BulkImportModal({ categories, existingRestaurants, onImport, onC
 
         preparedRestaurants.push({
           name: data.name,
-          google_maps_link: isUrl ? line : undefined,
+          google_maps_link: data.google_maps_link ?? (isUrl ? line : undefined),
+          google_place_id: data.place_id,
           address: data.address,
           avg_price: data.avg_price,
           photo_url: data.photo_url,

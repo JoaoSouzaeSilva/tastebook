@@ -20,6 +20,7 @@ export function RestaurantModal({ restaurant, categories, onSave, onClose, initi
 
   const [name, setName] = useState(restaurant?.name ?? '')
   const [mapsLink, setMapsLink] = useState(restaurant?.google_maps_link ?? '')
+  const [placeId, setPlaceId] = useState(restaurant?.google_place_id ?? '')
   const [address, setAddress] = useState(restaurant?.address ?? '')
   const [status, setStatus] = useState<'want_to_try' | 'tried'>(restaurant?.status ?? initialStatus ?? 'want_to_try')
   const [rating, setRating] = useState(restaurant?.rating ?? 0)
@@ -51,6 +52,8 @@ export function RestaurantModal({ restaurant, categories, onSave, onClose, initi
       if (data.address) setAddress(data.address)
       if (data.photo_url) setPhotoUrl(data.photo_url)
       if (data.avg_price) setPrice(data.avg_price)
+      if (data.place_id) setPlaceId(data.place_id)
+      if (data.google_maps_link) setMapsLink(data.google_maps_link)
     } catch {
       setPlaceError('Could not reach the lookup service')
     } finally {
@@ -91,7 +94,8 @@ export function RestaurantModal({ restaurant, categories, onSave, onClose, initi
     try {
       await onSave({
         name: name.trim(),
-        google_maps_link: mapsLink || undefined,
+        google_maps_link: mapsLink.trim() || null,
+        google_place_id: placeId || null,
         address: address || undefined,
         status,
         rating: status === 'tried' ? rating : undefined,
@@ -157,7 +161,7 @@ export function RestaurantModal({ restaurant, categories, onSave, onClose, initi
                 <input
                   style={{ ...inputStyle, flex: 1 }}
                   value={mapsLink}
-                  onChange={(e) => { setMapsLink(e.target.value); setPlaceError('') }}
+                  onChange={(e) => { setMapsLink(e.target.value); setPlaceId(''); setPlaceError('') }}
                   placeholder="https://maps.google.com/..."
                   onFocus={(e) => (e.target.style.borderColor = 'var(--accent-primary)')}
                   onBlur={(e) => (e.target.style.borderColor = 'var(--border-default)')}

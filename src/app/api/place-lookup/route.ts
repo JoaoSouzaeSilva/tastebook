@@ -54,7 +54,7 @@ async function searchPlaces(
       'Content-Type': 'application/json',
       'X-Goog-Api-Key': apiKey,
       'X-Goog-FieldMask':
-        'places.id,places.displayName,places.formattedAddress,places.priceLevel,places.photos,places.primaryType,places.types',
+        'places.id,places.displayName,places.formattedAddress,places.googleMapsUri,places.priceLevel,places.photos,places.primaryType,places.types',
     },
     body: JSON.stringify(body),
   })
@@ -125,6 +125,8 @@ export async function POST(request: NextRequest) {
   return Response.json({
     name: place.displayName?.text as string | undefined,
     address: place.formattedAddress as string | undefined,
+    place_id: place.id as string | undefined,
+    google_maps_link: place.googleMapsUri as string | undefined,
     avg_price: place.priceLevel ? PRICE_MAP[place.priceLevel] : undefined,
     photo_url: photoUrl,
     primary_type: place.primaryType as string | undefined,

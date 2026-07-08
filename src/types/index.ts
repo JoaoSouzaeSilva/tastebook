@@ -40,6 +40,7 @@ export interface Restaurant {
   id: string
   name: string
   google_maps_link?: string
+  google_place_id?: string
   address?: string
   status: RestaurantStatus
   rating?: number
@@ -66,7 +67,8 @@ export interface RestaurantWithCategories extends Restaurant {
 
 export type CreateRestaurantInput = {
   name: string
-  google_maps_link?: string
+  google_maps_link?: string | null
+  google_place_id?: string | null
   address?: string
   status?: RestaurantStatus
   rating?: number

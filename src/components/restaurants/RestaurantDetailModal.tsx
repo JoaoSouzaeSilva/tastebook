@@ -2,6 +2,7 @@
 
 import type { Restaurant, RestaurantVisit } from '@/types'
 import { formatEuroAmount, getAverageRating, getAverageSpendPerPerson, getPricePerPerson } from '@/lib/reviewStats'
+import { getGoogleMapsUrl } from '@/lib/maps'
 import { StarRating } from '../ui/StarRating'
 import { PriceIndicator } from '../ui/PriceIndicator'
 import { CategoryBadge } from '../ui/CategoryBadge'
@@ -40,6 +41,7 @@ export function RestaurantDetailModal({ restaurant, onClose, onAddVisit, onEdit,
   const averageRating = restaurant.average_rating ?? getAverageRating(restaurant.visits)
   const wouldGoAgainCount = restaurant.visits.filter((visit) => visit.would_go_again === true).length
   const worthMoneyCount = restaurant.visits.filter((visit) => visit.worth_the_money === true).length
+  const mapsUrl = getGoogleMapsUrl(restaurant)
 
   return (
     <Sheet onClose={onClose} maxWidth={620}>
@@ -124,7 +126,16 @@ export function RestaurantDetailModal({ restaurant, onClose, onAddVisit, onEdit,
               </span>
             </div>
             {restaurant.address && (
-              <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.5, marginBottom: 10 }}>{restaurant.address}</p>
+              <p style={{ fontSize: 14, lineHeight: 1.5, marginBottom: 10 }}>
+                <a
+                  href={mapsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: 'var(--text-secondary)', textDecoration: 'underline', textDecorationColor: 'var(--border-strong)', textUnderlineOffset: 3 }}
+                >
+                  {restaurant.address}
+                </a>
+              </p>
             )}
             {restaurant.categories.length > 0 && (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
@@ -151,20 +162,18 @@ export function RestaurantDetailModal({ restaurant, onClose, onAddVisit, onEdit,
             >
               {tried ? '+ Add visit' : '✓ Mark as tried'}
             </button>
-            {restaurant.google_maps_link && (
-              <a
-                href={restaurant.google_maps_link}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ ...secondaryActionStyle, flexShrink: 0 }}
-              >
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                  <circle cx="12" cy="10" r="3" />
-                </svg>
-                Maps
-              </a>
-            )}
+            <a
+              href={mapsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ ...secondaryActionStyle, flexShrink: 0 }}
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                <circle cx="12" cy="10" r="3" />
+              </svg>
+              Maps
+            </a>
             <button onClick={onEdit} style={{ ...secondaryActionStyle, flexShrink: 0 }}>
               Edit
             </button>
