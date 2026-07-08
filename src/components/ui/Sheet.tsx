@@ -10,9 +10,11 @@ interface SheetProps {
   dismissable?: boolean
   /** Extra styles for the sheet panel (e.g. flex column for sticky footers) */
   panelStyle?: React.CSSProperties
+  /** Skip entrance animations — used when swapping content between two sheets in place */
+  animated?: boolean
 }
 
-export function Sheet({ children, onClose, maxWidth = 560, dismissable = true, panelStyle }: SheetProps) {
+export function Sheet({ children, onClose, maxWidth = 560, dismissable = true, panelStyle, animated = true }: SheetProps) {
   const panelRef = useRef<HTMLDivElement>(null)
   const touchStartYRef = useRef<number | null>(null)
   const [dragY, setDragY] = useState(0)
@@ -59,7 +61,7 @@ export function Sheet({ children, onClose, maxWidth = 560, dismissable = true, p
 
   return (
     <div
-      className="animate-fade-in"
+      className={animated ? 'animate-fade-in' : undefined}
       onClick={() => dismissable && onClose()}
       style={{
         position: 'fixed',
@@ -72,7 +74,7 @@ export function Sheet({ children, onClose, maxWidth = 560, dismissable = true, p
       }}
     >
       <div
-        className="animate-fade-up"
+        className={animated ? 'animate-fade-up' : undefined}
         ref={panelRef}
         onClick={(e) => e.stopPropagation()}
         onTouchStart={handleTouchStart}

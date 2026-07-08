@@ -1,6 +1,7 @@
 'use client'
 
 import Image from 'next/image'
+import dynamic from 'next/dynamic'
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRestaurants } from '@/hooks/useRestaurants'
@@ -18,18 +19,26 @@ import { FilterBar } from '@/components/restaurants/FilterBar'
 import { StatsView } from '@/components/restaurants/StatsView'
 import { EmptyState } from '@/components/restaurants/EmptyState'
 import { SkeletonCard } from '@/components/restaurants/SkeletonCard'
+import { restaurantDistanceKm } from '@/lib/geo'
 import type { RestaurantVisit } from '@/types'
+
+// Leaflet touches `window` at module load — client-only
+const MapView = dynamic(() => import('@/components/restaurants/MapView').then((m) => m.MapView), {
+  ssr: false,
+  loading: () => <SkeletonCard />,
+})
 
 export default function HomePage() {
   const { theme, toggle } = useTheme()
   const {
     allRestaurants, restaurants, categories, filters, loading, stats, overviewStats,
     addRestaurant, addRestaurantsBulk, bulkUpdateRestaurantCategories, addCategory, editCategory, removeCategory, editRestaurant, removeRestaurant, tryRestaurant, editVisit, removeVisit, favoriteRestaurant, updateFilters,
+    userLocation, locationError, requestLocation,
   } = useRestaurants()
 
   const [tab, setTab] = useState<AppTab>('places')
-  const [addOpen, setAddOpen] = useState(false)
-  const [bulkImportOpen, setBulkImportOpen] = useState(false)
+  // `switched: true` swaps the sheet content in place with no re-entrance animation
+  const [addSheet, setAddSheet] = useState<{ mode: 'single' | 'bulk'; switched: boolean } | null>(null)
   const [bulkCategoryOpen, setBulkCategoryOpen] = useState(false)
   const [manageCategoriesOpen, setManageCategoriesOpen] = useState(false)
   const [manageSheetOpen, setManageSheetOpen] = useState(false)
@@ -44,6 +53,10 @@ export default function HomePage() {
       setUserEmail(data.user?.email ?? '')
     })
   }, [])
+
+  useEffect(() => {
+    if (tab === 'map' && !userLocation) requestLocation()
+  }, [tab, userLocation, requestLocation])
 
   async function handleSignOut() {
     await createClient().auth.signOut()
@@ -61,11 +74,6 @@ export default function HomePage() {
   const editTarget = editTargetId ? allRestaurants.find((restaurant) => restaurant.id === editTargetId) ?? null : null
   const triedTarget = triedTargetId ? allRestaurants.find((restaurant) => restaurant.id === triedTargetId) ?? null : null
   const manageActions = [
-    {
-      label: 'Import restaurants',
-      onClick: () => setBulkImportOpen(true),
-      tone: 'accent' as const,
-    },
     {
       label: 'Manage categories',
       onClick: () => setManageCategoriesOpen(true),
@@ -122,38 +130,15 @@ export default function HomePage() {
             </div>
             <div>
               <h1 className="font-display" style={{ fontSize: 19, fontWeight: 500, color: 'var(--text-primary)', lineHeight: 1.1 }}>
-                {tab === 'places' ? 'Tastebook' : 'Stats'}
+                {tab === 'places' ? 'Tastebook' : tab === 'map' ? 'Map' : 'Stats'}
               </h1>
               <p style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.2 }}>
                 {userEmail ? userEmail.split('@')[0] : 'Our list'}
               </p>
             </div>
           </div>
-          <button
-            onClick={() => setManageSheetOpen(true)}
-            style={{
-              width: 38,
-              height: 38,
-              borderRadius: 'var(--radius-full)',
-              border: '1px solid var(--border-default)',
-              background: 'var(--bg-surface)',
-              color: 'var(--text-secondary)',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
-            }}
-            aria-label="Open manage menu"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-              <circle cx="5" cy="12" r="1.6" />
-              <circle cx="12" cy="12" r="1.6" />
-              <circle cx="19" cy="12" r="1.6" />
-            </svg>
-          </button>
         </div>
-        {tab === 'places' && (
+        {tab !== 'stats' && (
           <div style={{ paddingBottom: 10 }}>
             <FilterBar filters={filters} categories={categories} onChange={updateFilters} counts={allCounts} />
           </div>
@@ -174,6 +159,14 @@ export default function HomePage() {
             topCategory={overviewStats.topCategory}
             thisMonthVisits={overviewStats.thisMonthVisits}
           />
+        ) : tab === 'map' ? (
+          <MapView
+            restaurants={restaurants}
+            userLocation={userLocation}
+            locationError={locationError}
+            onRequestLocation={requestLocation}
+            onOpenRestaurant={setDetailTargetId}
+          />
         ) : loading ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {Array.from({ length: 6 }).map((_, i) => (
@@ -181,28 +174,53 @@ export default function HomePage() {
             ))}
           </div>
         ) : restaurants.length === 0 ? (
-          <EmptyState status={filters.status} searching={Boolean(filters.search || filters.category_id)} onAdd={() => setAddOpen(true)} />
+          <EmptyState status={filters.status} searching={Boolean(filters.search || filters.category_id)} onAdd={() => setAddSheet({ mode: 'single', switched: false })} />
         ) : (
-          <div className="stagger-children" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {restaurants.map((r, i) => (
-              <RestaurantCard
-                key={r.id}
-                restaurant={r}
-                animationDelay={Math.min(i, 8) * 40}
-                onOpen={() => setDetailTargetId(r.id)}
-                onMarkTried={() => setTriedTargetId(r.id)}
-                onToggleFavorite={() => favoriteRestaurant(r.id, !r.is_favorite)}
-              />
-            ))}
-          </div>
+          <>
+            {filters.sort === 'nearest' && locationError && (
+              <p style={{ marginBottom: 10, padding: '10px 14px', borderRadius: 'var(--radius-md)', background: '#FEF2F2', border: '1px solid #FECACA', color: '#DC2626', fontSize: 13 }}>
+                {locationError}
+              </p>
+            )}
+            <div className="stagger-children" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {restaurants.map((r, i) => (
+                <RestaurantCard
+                  key={r.id}
+                  restaurant={r}
+                  animationDelay={Math.min(i, 8) * 40}
+                  distanceKm={restaurantDistanceKm(r, userLocation)}
+                  onOpen={() => setDetailTargetId(r.id)}
+                  onMarkTried={() => setTriedTargetId(r.id)}
+                  onToggleFavorite={() => favoriteRestaurant(r.id, !r.is_favorite)}
+                />
+              ))}
+            </div>
+          </>
         )}
       </main>
 
-      <BottomNav tab={tab} onTabChange={setTab} onAdd={() => setAddOpen(true)} />
+      <BottomNav tab={tab} onTabChange={setTab} onAdd={() => setAddSheet({ mode: 'single', switched: false })} onManage={() => setManageSheetOpen(true)} />
 
       {manageSheetOpen && <ManageSheet actions={manageActions} onClose={() => setManageSheetOpen(false)} />}
-      {addOpen && <RestaurantModal categories={categories} onSave={addRestaurant} onClose={() => setAddOpen(false)} />}
-      {bulkImportOpen && <BulkImportModal categories={categories} existingRestaurants={allRestaurants} onImport={addRestaurantsBulk} onClose={() => setBulkImportOpen(false)} />}
+      {addSheet?.mode === 'single' && (
+        <RestaurantModal
+          categories={categories}
+          onSave={addRestaurant}
+          onClose={() => setAddSheet(null)}
+          onSwitchToBulk={() => setAddSheet({ mode: 'bulk', switched: true })}
+          animated={!addSheet.switched}
+        />
+      )}
+      {addSheet?.mode === 'bulk' && (
+        <BulkImportModal
+          categories={categories}
+          existingRestaurants={allRestaurants}
+          onImport={addRestaurantsBulk}
+          onClose={() => setAddSheet(null)}
+          onSwitchToSingle={() => setAddSheet({ mode: 'single', switched: true })}
+          animated={!addSheet.switched}
+        />
+      )}
       {manageCategoriesOpen && <CategoryManagerModal categories={categories} onCreate={addCategory} onUpdate={editCategory} onDelete={removeCategory} onClose={() => setManageCategoriesOpen(false)} />}
       {bulkCategoryOpen && <BulkCategoryModal restaurants={restaurants} categories={categories} onApply={bulkUpdateRestaurantCategories} onClose={() => setBulkCategoryOpen(false)} />}
       {detailTarget && (

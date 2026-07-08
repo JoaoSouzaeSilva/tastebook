@@ -41,6 +41,8 @@ export interface Restaurant {
   name: string
   google_maps_link?: string
   google_place_id?: string
+  latitude?: number
+  longitude?: number
   address?: string
   status: RestaurantStatus
   rating?: number
@@ -69,6 +71,8 @@ export type CreateRestaurantInput = {
   name: string
   google_maps_link?: string | null
   google_place_id?: string | null
+  latitude?: number | null
+  longitude?: number | null
   address?: string
   status?: RestaurantStatus
   rating?: number
@@ -105,5 +109,5 @@ export interface FilterState {
   status: RestaurantStatus | 'all' | 'favorites'
   category_id: string | null
   search: string
-  sort: 'newest' | 'oldest' | 'rating' | 'name' | 'best_value' | 'most_revisited' | 'would_go_again'
+  sort: 'newest' | 'oldest' | 'rating' | 'name' | 'best_value' | 'most_revisited' | 'would_go_again' | 'nearest'
 }

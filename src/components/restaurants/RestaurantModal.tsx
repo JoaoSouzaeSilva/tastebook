@@ -6,6 +6,7 @@ import { StarRating } from '../ui/StarRating'
 import { PriceIndicator } from '../ui/PriceIndicator'
 import { CategoryBadge } from '../ui/CategoryBadge'
 import { Sheet, SheetHeader, SheetBody, SheetFooter } from '../ui/Sheet'
+import { AddModeToggle } from './AddModeToggle'
 
 interface RestaurantModalProps {
   restaurant?: Restaurant | null
@@ -13,14 +14,21 @@ interface RestaurantModalProps {
   onSave: (data: CreateRestaurantInput) => Promise<void>
   onClose: () => void
   initialStatus?: 'want_to_try' | 'tried'
+  onSwitchToBulk?: () => void
+  animated?: boolean
 }
 
-export function RestaurantModal({ restaurant, categories, onSave, onClose, initialStatus }: RestaurantModalProps) {
+export function RestaurantModal({ restaurant, categories, onSave, onClose, initialStatus, onSwitchToBulk, animated = true }: RestaurantModalProps) {
   const isEdit = !!restaurant
 
   const [name, setName] = useState(restaurant?.name ?? '')
   const [mapsLink, setMapsLink] = useState(restaurant?.google_maps_link ?? '')
   const [placeId, setPlaceId] = useState(restaurant?.google_place_id ?? '')
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(
+    restaurant?.latitude != null && restaurant?.longitude != null
+      ? { lat: restaurant.latitude, lng: restaurant.longitude }
+      : null
+  )
   const [address, setAddress] = useState(restaurant?.address ?? '')
   const [status, setStatus] = useState<'want_to_try' | 'tried'>(restaurant?.status ?? initialStatus ?? 'want_to_try')
   const [rating, setRating] = useState(restaurant?.rating ?? 0)
@@ -54,6 +62,7 @@ export function RestaurantModal({ restaurant, categories, onSave, onClose, initi
       if (data.avg_price) setPrice(data.avg_price)
       if (data.place_id) setPlaceId(data.place_id)
       if (data.google_maps_link) setMapsLink(data.google_maps_link)
+      if (data.latitude != null && data.longitude != null) setCoords({ lat: data.latitude, lng: data.longitude })
     } catch {
       setPlaceError('Could not reach the lookup service')
     } finally {
@@ -96,6 +105,8 @@ export function RestaurantModal({ restaurant, categories, onSave, onClose, initi
         name: name.trim(),
         google_maps_link: mapsLink.trim() || null,
         google_place_id: placeId || null,
+        latitude: coords?.lat ?? null,
+        longitude: coords?.lng ?? null,
         address: address || undefined,
         status,
         rating: status === 'tried' ? rating : undefined,
@@ -133,12 +144,16 @@ export function RestaurantModal({ restaurant, categories, onSave, onClose, initi
   }
 
   return (
-    <Sheet onClose={onClose} dismissable={!saving}>
+    <Sheet onClose={onClose} dismissable={!saving} animated={animated}>
       <SheetHeader title={isEdit ? 'Edit restaurant' : 'Add restaurant'} onClose={onClose} />
 
       <SheetBody>
         <form onSubmit={handleSubmit} style={{ padding: '20px 24px' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+
+            {!isEdit && onSwitchToBulk && (
+              <AddModeToggle mode="single" onChange={(mode) => { if (mode === 'bulk') onSwitchToBulk() }} />
+            )}
 
             {/* Name */}
             <div>
@@ -161,7 +176,7 @@ export function RestaurantModal({ restaurant, categories, onSave, onClose, initi
                 <input
                   style={{ ...inputStyle, flex: 1 }}
                   value={mapsLink}
-                  onChange={(e) => { setMapsLink(e.target.value); setPlaceId(''); setPlaceError('') }}
+                  onChange={(e) => { setMapsLink(e.target.value); setPlaceId(''); setCoords(null); setPlaceError('') }}
                   placeholder="https://maps.google.com/..."
                   onFocus={(e) => (e.target.style.borderColor = 'var(--accent-primary)')}
                   onBlur={(e) => (e.target.style.borderColor = 'var(--border-default)')}

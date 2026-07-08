@@ -2,6 +2,7 @@
 
 import type { Restaurant } from '@/types'
 import { formatEuroAmount, getLatestVisit } from '@/lib/reviewStats'
+import { formatDistance } from '@/lib/geo'
 import { CategoryBadge } from '../ui/CategoryBadge'
 
 interface RestaurantCardProps {
@@ -10,15 +11,17 @@ interface RestaurantCardProps {
   onMarkTried: () => void
   onToggleFavorite: () => void
   animationDelay?: number
+  distanceKm?: number | null
 }
 
-export function RestaurantCard({ restaurant, onOpen, onMarkTried, onToggleFavorite, animationDelay = 0 }: RestaurantCardProps) {
+export function RestaurantCard({ restaurant, onOpen, onMarkTried, onToggleFavorite, animationDelay = 0, distanceKm = null }: RestaurantCardProps) {
   const tried = restaurant.status === 'tried'
   const latestVisit = getLatestVisit(restaurant.visits)
   const pricePerPerson = restaurant.average_spend_per_person ?? null
   const rating = tried ? restaurant.average_rating ?? restaurant.rating : undefined
 
   const metaParts: string[] = []
+  if (distanceKm !== null) metaParts.push(`📍 ${formatDistance(distanceKm)}`)
   if (rating) metaParts.push(`★ ${rating.toFixed(1)}`)
   if (restaurant.avg_price) metaParts.push(restaurant.avg_price)
   if (pricePerPerson !== null) metaParts.push(`${formatEuroAmount(pricePerPerson)} pp`)

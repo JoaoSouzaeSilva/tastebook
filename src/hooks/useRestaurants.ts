@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { getRestaurants, getCategories, createRestaurant, updateRestaurant, deleteRestaurant, createVisit, updateVisit, deleteVisit, toggleFavorite, createCategory, updateCategory, deleteCategory, uploadReviewPhotos } from '@/lib/restaurants'
 import type { Restaurant, Category, FilterState, CreateRestaurantInput, UpdateRestaurantInput, CreateCategoryInput } from '@/types'
 import { getAverageRating, getAverageSpendPerPerson } from '@/lib/reviewStats'
+import { restaurantDistanceKm, type LatLng } from '@/lib/geo'
 
 const defaultFilters: FilterState = {
   status: 'all',
@@ -19,6 +20,28 @@ export function useRestaurants() {
   const [filters, setFilters] = useState<FilterState>(defaultFilters)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [userLocation, setUserLocation] = useState<LatLng | null>(null)
+  const [locationError, setLocationError] = useState<string | null>(null)
+
+  const requestLocation = useCallback(() => {
+    if (typeof navigator === 'undefined' || !navigator.geolocation) {
+      setLocationError('Location is not available on this device')
+      return
+    }
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setLocationError(null)
+        setUserLocation({ lat: position.coords.latitude, lng: position.coords.longitude })
+      },
+      () => setLocationError('Could not get your location — check location permissions'),
+      { enableHighAccuracy: true, maximumAge: 60_000, timeout: 10_000 }
+    )
+  }, [])
+
+  // Ask for the device position when a location-dependent view is active
+  useEffect(() => {
+    if (filters.sort === 'nearest' && !userLocation) requestLocation()
+  }, [filters.sort, userLocation, requestLocation])
 
   // Only re-fetch from DB when sort order changes (or on mutations)
   const fetchAll = useCallback(async () => {
@@ -101,12 +124,19 @@ export function useRestaurants() {
         if (positiveDiff !== 0) return positiveDiff
         return b.visits.length - a.visits.length
       })
+    } else if (filters.sort === 'nearest') {
+      result.sort((a, b) => {
+        const aDist = restaurantDistanceKm(a, userLocation) ?? Number.POSITIVE_INFINITY
+        const bDist = restaurantDistanceKm(b, userLocation) ?? Number.POSITIVE_INFINITY
+        if (aDist !== bDist) return aDist - bDist
+        return a.name.localeCompare(b.name)
+      })
     } else {
       result.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
     }
 
     return result
-  }, [allRestaurants, filters.status, filters.search, filters.category_id, filters.sort])
+  }, [allRestaurants, filters.status, filters.search, filters.category_id, filters.sort, userLocation])
 
   const addRestaurant = useCallback(async (input: CreateRestaurantInput) => {
     const r = await createRestaurant(input)
@@ -349,6 +379,9 @@ export function useRestaurants() {
     removeVisit,
     favoriteRestaurant,
     updateFilters,
+    userLocation,
+    locationError,
+    requestLocation,
     refetch: fetchAll,
   }
 }

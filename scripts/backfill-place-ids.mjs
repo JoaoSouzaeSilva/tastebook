@@ -1,5 +1,7 @@
-// Backfill google_place_id (and missing google_maps_link) for existing restaurants
-// by resolving each one against the Google Places API.
+// Backfill google_place_id, coordinates, and missing google_maps_link for existing
+// restaurants by resolving each one against the Google Places API. Rows that already
+// have a place ID get coordinates from a cheap Place Details call; the rest go
+// through text search.
 //
 // Dry run (default — writes nothing, prints what would change):
 //   node --env-file=.env.local scripts/backfill-place-ids.mjs
@@ -68,13 +70,24 @@ async function searchPlace(textQuery, latLng) {
     headers: {
       'Content-Type': 'application/json',
       'X-Goog-Api-Key': mapsApiKey,
-      'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.googleMapsUri',
+      'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.googleMapsUri,places.location',
     },
     body: JSON.stringify(body),
   })
   if (!res.ok) throw new Error(`Places API ${res.status}: ${await res.text()}`)
   const data = await res.json()
   return data.places?.[0] ?? null
+}
+
+async function getPlaceDetails(placeId) {
+  const res = await fetch(`https://places.googleapis.com/v1/places/${encodeURIComponent(placeId)}`, {
+    headers: {
+      'X-Goog-Api-Key': mapsApiKey,
+      'X-Goog-FieldMask': 'id,displayName,location',
+    },
+  })
+  if (!res.ok) throw new Error(`Place Details ${res.status}: ${await res.text()}`)
+  return res.json()
 }
 
 function normalize(value) {
@@ -101,18 +114,59 @@ function namesMatch(stored, returned) {
 
 const { data: restaurants, error } = await supabase
   .from('restaurants')
-  .select('id, name, address, google_maps_link, google_place_id')
+  .select('id, name, address, google_maps_link, google_place_id, latitude, longitude')
   .order('created_at', { ascending: true })
 
 if (error) throw error
 
+const needsCoordsOnly = restaurants.filter((r) => r.google_place_id && (r.latitude == null || r.longitude == null))
 const pending = restaurants.filter((r) => !r.google_place_id)
-console.log(`${restaurants.length} restaurants total, ${pending.length} missing a place ID.`)
+console.log(`${restaurants.length} restaurants total · ${pending.length} missing a place ID · ${needsCoordsOnly.length} missing only coordinates.`)
 console.log(apply ? 'Mode: APPLY — matches will be written.\n' : 'Mode: DRY RUN — nothing will be written. Re-run with --apply to save.\n')
 
 let updated = 0
 let lowConfidence = 0
 let notFound = 0
+
+// Rows with a known place ID: fetch coordinates directly — exact, no guessing
+for (const restaurant of needsCoordsOnly) {
+  let details
+  try {
+    details = await getPlaceDetails(restaurant.google_place_id)
+  } catch (err) {
+    console.log(`✗ ${restaurant.name} — details lookup failed: ${err.message}`)
+    notFound++
+    continue
+  }
+
+  const location = details.location
+  if (location?.latitude == null || location?.longitude == null) {
+    console.log(`✗ ${restaurant.name} — place details returned no coordinates`)
+    notFound++
+    continue
+  }
+
+  console.log(`✓ ${restaurant.name} → ${location.latitude.toFixed(5)}, ${location.longitude.toFixed(5)}`)
+
+  if (apply) {
+    const { error: updateError } = await supabase
+      .from('restaurants')
+      .update({
+        latitude: location.latitude,
+        longitude: location.longitude,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', restaurant.id)
+
+    if (updateError) {
+      console.log(`  ! update failed: ${updateError.message}`)
+      continue
+    }
+  }
+  updated++
+
+  await new Promise((resolve) => setTimeout(resolve, 100))
+}
 
 for (const restaurant of pending) {
   let query = [restaurant.name, restaurant.address].filter(Boolean).join(', ')
@@ -157,6 +211,8 @@ for (const restaurant of pending) {
       .from('restaurants')
       .update({
         google_place_id: place.id,
+        latitude: place.location?.latitude ?? null,
+        longitude: place.location?.longitude ?? null,
         // Only fill the link when empty — the place ID takes precedence in the app anyway
         ...(restaurant.google_maps_link ? {} : { google_maps_link: place.googleMapsUri ?? null }),
         updated_at: new Date().toISOString(),

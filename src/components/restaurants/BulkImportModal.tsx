@@ -1,7 +1,9 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import type { Category, CreateRestaurantInput } from '@/types'
+import { Sheet, SheetBody } from '../ui/Sheet'
+import { AddModeToggle } from './AddModeToggle'
 
 type ImportResult = {
   input: string
@@ -17,11 +19,13 @@ interface BulkImportModalProps {
   existingRestaurants: { name: string; google_maps_link?: string }[]
   onImport: (restaurants: CreateRestaurantInput[]) => Promise<void>
   onClose: () => void
+  onSwitchToSingle?: () => void
+  animated?: boolean
 }
 
 const googleMapsUrlPattern = /^https?:\/\/(?:www\.)?(?:google\.[^/\s]+|maps\.app\.goo\.gl|goo\.gl)\/\S+/i
 
-export function BulkImportModal({ categories, existingRestaurants, onImport, onClose }: BulkImportModalProps) {
+export function BulkImportModal({ categories, existingRestaurants, onImport, onClose, onSwitchToSingle, animated = true }: BulkImportModalProps) {
   const [rawInput, setRawInput] = useState('')
   const [isImporting, setIsImporting] = useState(false)
   const [error, setError] = useState('')
@@ -29,18 +33,6 @@ export function BulkImportModal({ categories, existingRestaurants, onImport, onC
   const [progress, setProgress] = useState({ completed: 0, total: 0 })
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([])
   const [categoryMode, setCategoryMode] = useState<ImportCategoryMode>('replace')
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !isImporting) onClose()
-    }
-    document.addEventListener('keydown', onKey)
-    document.body.style.overflow = 'hidden'
-    return () => {
-      document.removeEventListener('keydown', onKey)
-      document.body.style.overflow = ''
-    }
-  }, [isImporting, onClose])
 
   const parsedLines = useMemo(
     () =>
@@ -120,6 +112,8 @@ export function BulkImportModal({ categories, existingRestaurants, onImport, onC
           address?: string
           place_id?: string
           google_maps_link?: string
+          latitude?: number
+          longitude?: number
           avg_price?: CreateRestaurantInput['avg_price']
           photo_url?: string
           primary_type?: string
@@ -160,6 +154,8 @@ export function BulkImportModal({ categories, existingRestaurants, onImport, onC
           name: data.name,
           google_maps_link: data.google_maps_link ?? (isUrl ? line : undefined),
           google_place_id: data.place_id,
+          latitude: data.latitude,
+          longitude: data.longitude,
           address: data.address,
           avg_price: data.avg_price,
           photo_url: data.photo_url,
@@ -225,78 +221,50 @@ export function BulkImportModal({ categories, existingRestaurants, onImport, onC
   }
 
   return (
-    <div
-      className="animate-fade-in"
-      onClick={() => {
-        if (!isImporting) onClose()
-      }}
-      style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 110,
-        background: 'rgba(0,0,0,0.5)',
-        display: 'flex',
-        alignItems: 'flex-end',
-        justifyContent: 'center',
-      }}
-    >
+    <Sheet onClose={onClose} dismissable={!isImporting} animated={animated}>
       <div
-        className="animate-fade-up"
-        onClick={(e) => e.stopPropagation()}
         style={{
-          width: '100%',
-          maxWidth: 560,
-          background: 'var(--bg-surface)',
-          borderRadius: 'var(--radius-xl) var(--radius-xl) 0 0',
-          maxHeight: '92svh',
           display: 'flex',
-          flexDirection: 'column',
-          boxShadow: 'var(--shadow-xl)',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '10px 24px 14px',
+          borderBottom: '1px solid var(--border-subtle)',
+          flexShrink: 0,
         }}
       >
-        <div style={{ padding: '12px 0 0', display: 'flex', justifyContent: 'center' }}>
-          <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--border-default)' }} />
-        </div>
-
-        <div
+        <h2 className="font-display" style={{ fontSize: 22, fontWeight: 500, color: 'var(--text-primary)' }}>
+          Bulk import
+        </h2>
+        <button
+          onClick={onClose}
+          disabled={isImporting}
+          aria-label="Close"
           style={{
+            width: 32,
+            height: 32,
+            borderRadius: 'var(--radius-full)',
+            border: '1px solid var(--border-default)',
+            background: 'var(--bg-subtle)',
+            cursor: isImporting ? 'not-allowed' : 'pointer',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '16px 24px',
-            borderBottom: '1px solid var(--border-subtle)',
+            justifyContent: 'center',
+            color: 'var(--text-secondary)',
+            fontSize: 18,
+            lineHeight: 1,
+            opacity: isImporting ? 0.5 : 1,
           }}
         >
-          <div>
-            <h2 className="font-display" style={{ fontSize: 22, fontWeight: 500, color: 'var(--text-primary)' }}>
-              Bulk import
-            </h2>
-          </div>
-          <button
-            onClick={onClose}
-            disabled={isImporting}
-            style={{
-              width: 32,
-              height: 32,
-              borderRadius: 'var(--radius-full)',
-              border: '1px solid var(--border-default)',
-              background: 'var(--bg-subtle)',
-              cursor: isImporting ? 'not-allowed' : 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'var(--text-secondary)',
-              fontSize: 18,
-              lineHeight: 1,
-              opacity: isImporting ? 0.5 : 1,
-            }}
-          >
-            ×
-          </button>
-        </div>
+          ×
+        </button>
+      </div>
 
-        <form onSubmit={handleImport} style={{ flex: 1, overflowY: 'auto', padding: '20px 24px 24px' }}>
+      <SheetBody>
+        <form onSubmit={handleImport} style={{ padding: '20px 24px 24px' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {onSwitchToSingle && !isImporting && (
+              <AddModeToggle mode="bulk" onChange={(mode) => { if (mode === 'single') onSwitchToSingle() }} />
+            )}
             <div>
               <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8 }}>
                 Apply categories during import
@@ -500,8 +468,8 @@ export function BulkImportModal({ categories, existingRestaurants, onImport, onC
             </div>
           </div>
         </form>
-      </div>
-    </div>
+      </SheetBody>
+    </Sheet>
   )
 }
 

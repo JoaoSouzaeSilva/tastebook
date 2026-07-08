@@ -21,6 +21,8 @@ create table if not exists restaurants (
   name             text not null,
   google_maps_link text,
   google_place_id  text,
+  latitude         double precision,
+  longitude        double precision,
   address          text,
   status           text not null default 'want_to_try'
                      check (status in ('want_to_try', 'tried')),
@@ -37,6 +39,8 @@ create table if not exists restaurants (
 );
 
 alter table restaurants add column if not exists google_place_id text;
+alter table restaurants add column if not exists latitude double precision;
+alter table restaurants add column if not exists longitude double precision;
 alter table restaurants add column if not exists party_size int check (party_size >= 1);
 alter table restaurants add column if not exists total_paid numeric(10,2) check (total_paid >= 0);
 alter table restaurants alter column rating type numeric(2,1) using rating::numeric(2,1);

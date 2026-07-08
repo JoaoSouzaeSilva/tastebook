@@ -104,3 +104,17 @@ input, textarea, select { font-family: var(--font-body); color: var(--text-prima
 input::placeholder, textarea::placeholder { color: var(--text-muted); }
 
 .skeleton { background: linear-gradient(90deg, var(--bg-subtle) 25%, var(--bg-surface) 50%, var(--bg-subtle) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
+
+/* ── Map (Leaflet) ─────────────────────────────────────────── */
+.leaflet-container { background: var(--bg-subtle); font-family: var(--font-body); }
+[data-theme="dark"] .map-tiles {
+  filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3) brightness(0.7);
+}
+.leaflet-tooltip {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  font-family: var(--font-body);
+  font-weight: 600;
+}

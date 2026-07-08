@@ -134,6 +134,7 @@ export function FilterBar({ filters, categories, onChange, counts }: FilterBarPr
             maxWidth: 130,
           }}
         >
+          <option value="nearest">Near me</option>
           <option value="newest">Newest</option>
           <option value="oldest">Oldest</option>
           <option value="rating">Top rated</option>
