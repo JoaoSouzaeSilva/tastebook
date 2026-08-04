@@ -1,42 +1,26 @@
 'use client'
 
-export type AppTab = 'places' | 'map' | 'stats'
+export type AppTab = 'list' | 'map'
 
 interface BottomNavProps {
   tab: AppTab
   onTabChange: (tab: AppTab) => void
   onAdd: () => void
-  onManage: () => void
 }
 
-const iconStroke = { fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' } as const
+const iconStroke = {
+  fill: 'none',
+  stroke: 'currentColor',
+  strokeWidth: 2,
+  strokeLinecap: 'round',
+  strokeLinejoin: 'round',
+} as const
 
-function NavButton({ active, label, icon, onClick }: { active: boolean; label: string; icon: React.ReactNode; onClick: () => void }) {
-  return (
-    <button
-      onClick={onClick}
-      style={{
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: 3,
-        padding: '10px 0 8px',
-        background: 'none',
-        border: 'none',
-        cursor: 'pointer',
-        color: active ? 'var(--accent-primary)' : 'var(--text-muted)',
-        fontFamily: 'var(--font-body)',
-        transition: 'color 0.15s',
-      }}
-    >
-      {icon}
-      <span style={{ fontSize: 11, fontWeight: active ? 600 : 500, letterSpacing: '0.01em' }}>{label}</span>
-    </button>
-  )
-}
-
-export function BottomNav({ tab, onTabChange, onAdd, onManage }: BottomNavProps) {
+/**
+ * Three items, down from five. Stats became the header's stamp line, and Manage was
+ * never navigation — it lives behind the wordmark now.
+ */
+export function BottomNav({ tab, onTabChange, onAdd }: BottomNavProps) {
   return (
     <nav
       className="glass"
@@ -52,86 +36,79 @@ export function BottomNav({ tab, onTabChange, onAdd, onManage }: BottomNavProps)
         paddingBottom: 'env(safe-area-inset-bottom)',
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center' }}>
-        <NavButton
-          active={tab === 'places'}
-          label="Places"
-          onClick={() => onTabChange('places')}
-          icon={
-            <svg width="22" height="22" viewBox="0 0 24 24" {...iconStroke}>
-              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-              <circle cx="12" cy="10" r="3" />
-            </svg>
-          }
-        />
-
-        <NavButton
-          active={tab === 'map'}
-          label="Map"
-          onClick={() => onTabChange('map')}
-          icon={
-            <svg width="22" height="22" viewBox="0 0 24 24" {...iconStroke}>
-              <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21" />
-              <line x1="9" y1="3" x2="9" y2="18" />
-              <line x1="15" y1="6" x2="15" y2="21" />
-            </svg>
-          }
-        />
+      <div style={{ display: 'flex', alignItems: 'center', padding: '0 30px' }}>
+        <NavButton active={tab === 'list'} label="List" onClick={() => onTabChange('list')}>
+          <path d="M4 6h16M4 12h16M4 18h11" />
+        </NavButton>
 
         <button
           onClick={onAdd}
-          aria-label="Add restaurant"
+          aria-label="Add a place"
           style={{
-            width: 54,
-            height: 54,
-            marginTop: -18,
+            flex: 'none',
+            width: 50,
+            height: 50,
+            marginTop: -14,
             borderRadius: 'var(--radius-full)',
             border: 'none',
-            background: 'linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-primary-dark) 100%)',
+            background: 'var(--accent-primary)',
             color: '#fff',
             cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 6px 18px rgba(200,92,56,0.38)',
-            flexShrink: 0,
+            display: 'grid',
+            placeItems: 'center',
+            boxShadow: 'var(--shadow-accent)',
           }}
         >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.4" strokeLinecap="round">
+          <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden>
             <line x1="12" y1="5" x2="12" y2="19" />
             <line x1="5" y1="12" x2="19" y2="12" />
           </svg>
         </button>
 
-        <NavButton
-          active={tab === 'stats'}
-          label="Stats"
-          onClick={() => onTabChange('stats')}
-          icon={
-            <svg width="22" height="22" viewBox="0 0 24 24" {...iconStroke}>
-              <line x1="18" y1="20" x2="18" y2="10" />
-              <line x1="12" y1="20" x2="12" y2="4" />
-              <line x1="6" y1="20" x2="6" y2="14" />
-            </svg>
-          }
-        />
-
-        <NavButton
-          active={false}
-          label="Manage"
-          onClick={onManage}
-          icon={
-            <svg width="22" height="22" viewBox="0 0 24 24" {...iconStroke}>
-              <line x1="4" y1="7" x2="20" y2="7" />
-              <line x1="4" y1="12" x2="20" y2="12" />
-              <line x1="4" y1="17" x2="20" y2="17" />
-              <circle cx="9" cy="7" r="1.8" fill="var(--bg-surface)" />
-              <circle cx="15" cy="12" r="1.8" fill="var(--bg-surface)" />
-              <circle cx="7" cy="17" r="1.8" fill="var(--bg-surface)" />
-            </svg>
-          }
-        />
+        <NavButton active={tab === 'map'} label="Map" onClick={() => onTabChange('map')}>
+          <path d="M20.5 10c0 6.6-8.5 12-8.5 12S3.5 16.6 3.5 10a8.5 8.5 0 0 1 17 0z" />
+          <circle cx="12" cy="10" r="2.8" />
+        </NavButton>
       </div>
     </nav>
+  )
+}
+
+function NavButton({
+  active,
+  label,
+  onClick,
+  children,
+}: {
+  active: boolean
+  label: string
+  onClick: () => void
+  children: React.ReactNode
+}) {
+  return (
+    <button
+      onClick={onClick}
+      aria-current={active ? 'page' : undefined}
+      className="label-caps"
+      style={{
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: 3,
+        padding: '11px 0 10px',
+        background: 'none',
+        border: 'none',
+        cursor: 'pointer',
+        fontSize: 9.5,
+        color: active ? 'var(--accent-primary)' : 'var(--text-muted)',
+        transition: 'color 0.15s',
+      }}
+    >
+      <svg width="21" height="21" viewBox="0 0 24 24" {...iconStroke} aria-hidden>
+        {children}
+      </svg>
+      {label}
+    </button>
   )
 }

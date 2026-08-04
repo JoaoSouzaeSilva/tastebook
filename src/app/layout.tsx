@@ -13,17 +13,17 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: '#FAF8F3',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#E8E6DF' },
+    { media: '(prefers-color-scheme: dark)', color: '#10131A' },
+  ],
 }
 
+// No webfonts by design — the type stack is entirely iOS-resident, so there is
+// nothing to preconnect to and nothing to lay out twice.
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet" />
-      </head>
       <body>
         <ThemeProvider>{children}</ThemeProvider>
       </body>

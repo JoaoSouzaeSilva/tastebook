@@ -1,109 +1,216 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap');
-
 @import "tailwindcss";
 
+/*
+ * Tastebook — risograph inks on newsprint.
+ *
+ * Type is deliberately all iOS-resident: both users are on iPhone, so the system
+ * font library is the design system. Nothing downloads, nothing silently falls back.
+ *   script  → Snell Roundhand    (the hand-lettered wordmark and section heads)
+ *   display → Futura             (uppercase labels, buttons, sheet titles)
+ *   body    → SF Pro             (names, notes, anything read as content)
+ *   stamp   → American Typewriter (meta lines, counts, anything with digits)
+ */
 :root {
-  --font-display: 'Playfair Display', Georgia, serif;
-  --font-body: 'DM Sans', system-ui, sans-serif;
-  --bg-base: #FAF8F3;
-  --bg-surface: #FFFFFF;
-  --bg-elevated: #FFFDF9;
-  --bg-subtle: #F5F0E8;
-  --text-primary: #1A1410;
-  --text-secondary: #6B5E52;
-  --text-muted: #9C8E84;
-  --text-inverse: #FAF8F3;
-  --accent-primary: #C85C38;
-  --accent-primary-light: #F7E8E2;
-  --accent-primary-dark: #9E3F22;
-  --accent-secondary: #2D6A4F;
-  --accent-secondary-light: #E8F3EE;
-  --accent-gold: #B8860B;
-  --accent-gold-light: #FFF8DC;
-  --border-subtle: rgba(26, 20, 16, 0.08);
-  --border-default: rgba(26, 20, 16, 0.14);
-  --border-strong: rgba(26, 20, 16, 0.25);
-  --shadow-sm: 0 1px 3px rgba(26, 20, 16, 0.06), 0 1px 2px rgba(26, 20, 16, 0.04);
-  --shadow-md: 0 4px 12px rgba(26, 20, 16, 0.08), 0 2px 4px rgba(26, 20, 16, 0.05);
-  --shadow-lg: 0 8px 24px rgba(26, 20, 16, 0.10), 0 4px 8px rgba(26, 20, 16, 0.06);
-  --shadow-xl: 0 20px 48px rgba(26, 20, 16, 0.14);
-  --radius-sm: 8px;
+  --font-script: "Snell Roundhand", "Bradley Hand", "Brush Script MT", cursive;
+  --font-display: Futura, "Avenir Next Condensed", "Avenir Next", "Helvetica Neue", system-ui, sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+  --font-stamp: "American Typewriter", "Courier New", ui-monospace, monospace;
+
+  --bg-base: #E8E6DF;
+  --bg-surface: #F3F1EB;
+  --bg-elevated: #F8F7F2;
+  --bg-subtle: #DCD9D0;
+  --text-primary: #14181F;
+  --text-secondary: #4A4E57;
+  --text-muted: #6E6A62;
+  --text-inverse: #F3F1EB;
+
+  /* Federal blue replaces the old terracotta as the single accent */
+  --accent-primary: #1B3FB8;
+  --accent-primary-light: #DEE3F7;
+  --accent-primary-dark: #122D8A;
+  --accent-secondary: #007546;
+  --accent-secondary-light: #DCEDE4;
+  --accent-gold: #9A6A00;
+  --accent-gold-light: #F7EBCB;
+
+  /* Two pens — whose handwriting a row is in. Derived from restaurants.user_id. */
+  --pen-mine: #1B3FB8;
+  --pen-theirs: #C4126D;
+
+  /* Semantic, kept separate from the accent */
+  --danger: #B3161C;
+  --danger-bg: #F5DCDC;
+  --danger-border: #E0AEB0;
+  --warn: #8A5A00;
+  --warn-bg: #F5E7C8;
+
+  --border-subtle: rgba(20, 24, 31, 0.08);
+  --border-default: rgba(20, 24, 31, 0.15);
+  --border-strong: rgba(20, 24, 31, 0.28);
+  --paper-dot: rgba(20, 24, 31, 0.16);
+
+  --shadow-sm: 0 1px 2px rgba(20, 24, 31, 0.07);
+  --shadow-md: 0 4px 12px rgba(20, 24, 31, 0.09), 0 2px 4px rgba(20, 24, 31, 0.05);
+  --shadow-lg: 0 8px 24px rgba(20, 24, 31, 0.11), 0 4px 8px rgba(20, 24, 31, 0.06);
+  --shadow-xl: 0 20px 48px rgba(20, 24, 31, 0.16);
+  --shadow-accent: 0 4px 14px rgba(27, 63, 184, 0.28);
+
+  --radius-sm: 6px;
   --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 24px;
+  --radius-lg: 18px;
+  --radius-xl: 26px;
   --radius-full: 9999px;
 }
 
 [data-theme="dark"] {
-  --bg-base: #0F0D0A;
-  --bg-surface: #1A1612;
-  --bg-elevated: #221E18;
-  --bg-subtle: #2A2520;
-  --text-primary: #F5F0E8;
-  --text-secondary: #B5A99E;
-  --text-muted: #7A6E66;
-  --text-inverse: #1A1410;
-  --accent-primary: #E07050;
-  --accent-primary-light: #2A1810;
-  --accent-primary-dark: #F08060;
-  --accent-secondary: #52B788;
-  --accent-secondary-light: #0D2018;
-  --accent-gold: #D4A520;
-  --accent-gold-light: #2A2008;
-  --border-subtle: rgba(245, 240, 232, 0.06);
-  --border-default: rgba(245, 240, 232, 0.10);
-  --border-strong: rgba(245, 240, 232, 0.20);
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.35);
-  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.4);
-  --shadow-xl: 0 20px 48px rgba(0, 0, 0, 0.5);
+  --bg-base: #10131A;
+  --bg-surface: #1A1E27;
+  --bg-elevated: #222732;
+  --bg-subtle: #262C38;
+  --text-primary: #E9E6DD;
+  --text-secondary: #B3AFA4;
+  --text-muted: #8A8779;
+  --text-inverse: #14181F;
+
+  --accent-primary: #7C97FF;
+  --accent-primary-light: #1B2240;
+  --accent-primary-dark: #A8BAFF;
+  --accent-secondary: #35C98A;
+  --accent-secondary-light: #0E2419;
+  --accent-gold: #FFD34E;
+  --accent-gold-light: #2A2208;
+
+  --pen-mine: #7C97FF;
+  --pen-theirs: #FF6FB4;
+
+  --danger: #FF8080;
+  --danger-bg: #2E1618;
+  --danger-border: #5C2A2C;
+  --warn: #FFC96B;
+  --warn-bg: #2A2008;
+
+  --border-subtle: rgba(233, 230, 221, 0.07);
+  --border-default: rgba(233, 230, 221, 0.14);
+  --border-strong: rgba(233, 230, 221, 0.26);
+  --paper-dot: rgba(233, 230, 221, 0.13);
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.45);
+  --shadow-xl: 0 20px 48px rgba(0, 0, 0, 0.55);
+  --shadow-accent: 0 4px 14px rgba(0, 0, 0, 0.45);
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
-html { font-family: var(--font-body); background-color: var(--bg-base); color: var(--text-primary); -webkit-font-smoothing: antialiased; }
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html {
+  font-family: var(--font-body);
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+}
 body { min-height: 100svh; background-color: var(--bg-base); overflow-x: hidden; }
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border-default); border-radius: 2px; }
 ::selection { background: var(--accent-primary-light); color: var(--accent-primary-dark); }
 :focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 2px; border-radius: 4px; }
+
+/* ── Type roles ─────────────────────────────────────────────── */
+.font-script {
+  font-family: var(--font-script);
+  font-weight: 400;
+  letter-spacing: 0.01em;
+}
 .font-display { font-family: var(--font-display); }
+.font-stamp {
+  font-family: var(--font-stamp);
+  font-variant-numeric: tabular-nums;
+}
+.label-caps {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.11em;
+}
 
-.glass { background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
-[data-theme="dark"] .glass { background: rgba(26, 22, 18, 0.85); }
+/* Riso mis-registration: a pink plate printed a hair off behind the blue one. */
+.wordmark {
+  font-family: var(--font-script);
+  color: var(--pen-mine);
+  text-shadow: 1.5px 1.5px 0 color-mix(in srgb, var(--pen-theirs) 42%, transparent);
+}
 
-.gradient-text { background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-gold) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+/* ── Notebook paper ─────────────────────────────────────────── */
+.paper {
+  background-color: var(--bg-base);
+  background-image: radial-gradient(var(--paper-dot) 0.9px, transparent 0.9px);
+  background-size: 17px 17px;
+  background-position: 8px 8px;
+}
 
-.card-hover { transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease; }
-.card-hover:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+.glass {
+  background: rgba(232, 230, 223, 0.86);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+[data-theme="dark"] .glass { background: rgba(16, 19, 26, 0.86); }
 
-@keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+/* ── Ledger rows ────────────────────────────────────────────── */
+/* Row content slides over the action tray beneath it. */
+.ledger-row {
+  transition: transform 0.24s cubic-bezier(0.32, 0.72, 0, 1);
+  touch-action: pan-y;
+}
+.ledger-row.is-dragging { transition: none; }
+
+/* The tick draws itself on, like a pen stroke. */
+.tick path {
+  fill: none;
+  stroke: var(--accent-secondary);
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 22;
+  stroke-dashoffset: 22;
+  transition: stroke-dashoffset 0.3s cubic-bezier(0.6, 0.05, 0.2, 1);
+}
+.tick.is-checked path { stroke-dashoffset: 0; }
+
+/* ── Animation ──────────────────────────────────────────────── */
+@keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-@keyframes scaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+@keyframes scaleIn { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
 @keyframes shimmer { from { background-position: -200% 0; } to { background-position: 200% 0; } }
 
-.animate-fade-up { animation: fadeUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) both; }
-.animate-fade-in { animation: fadeIn 0.3s ease both; }
-.animate-scale-in { animation: scaleIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
-
-.stagger-children > *:nth-child(1) { animation-delay: 0ms; }
-.stagger-children > *:nth-child(2) { animation-delay: 60ms; }
-.stagger-children > *:nth-child(3) { animation-delay: 120ms; }
-.stagger-children > *:nth-child(4) { animation-delay: 180ms; }
-.stagger-children > *:nth-child(5) { animation-delay: 240ms; }
-.stagger-children > *:nth-child(6) { animation-delay: 300ms; }
+.animate-fade-up { animation: fadeUp 0.34s cubic-bezier(0.32, 0.72, 0, 1) both; }
+.animate-fade-in { animation: fadeIn 0.26s ease both; }
+.animate-scale-in { animation: scaleIn 0.24s cubic-bezier(0.32, 0.72, 0, 1) both; }
 
 .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 
 .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 16px); }
-.safe-top    { padding-top:    env(safe-area-inset-top, 0px); }
-* { -webkit-tap-highlight-color: transparent; }
+.safe-top { padding-top: env(safe-area-inset-top, 0px); }
 
-input, textarea, select { font-family: var(--font-body); color: var(--text-primary); background: var(--bg-surface); }
+input, textarea, select {
+  font-family: var(--font-body);
+  color: var(--text-primary);
+  background: var(--bg-surface);
+}
 input::placeholder, textarea::placeholder { color: var(--text-muted); }
 
-.skeleton { background: linear-gradient(90deg, var(--bg-subtle) 25%, var(--bg-surface) 50%, var(--bg-subtle) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
+.skeleton {
+  background: linear-gradient(90deg, var(--bg-subtle) 25%, var(--bg-surface) 50%, var(--bg-subtle) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
 
 /* ── Map (Leaflet) ─────────────────────────────────────────── */
 .leaflet-container { background: var(--bg-subtle); font-family: var(--font-body); }

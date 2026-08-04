@@ -27,7 +27,7 @@ function pinIcon(color: string, favorite: boolean) {
 
 const userIcon = L.divIcon({
   className: '',
-  html: '<div style="width:16px;height:16px;border-radius:50%;background:#2563EB;border:3px solid #fff;box-shadow:0 0 0 4px rgba(37,99,235,0.25)"></div>',
+  html: '<div style="width:16px;height:16px;border-radius:50%;background:var(--accent-primary);border:3px solid #fff;box-shadow:0 0 0 4px var(--accent-primary-light)"></div>',
   iconSize: [16, 16],
   iconAnchor: [8, 8],
 })
@@ -157,7 +157,7 @@ export function MapView({ restaurants, userLocation, locationError, onRequestLoc
           borderRadius: 'var(--radius-full)',
           border: '1px solid var(--border-default)',
           background: 'var(--bg-surface)',
-          color: userLocation ? '#2563EB' : 'var(--text-secondary)',
+          color: userLocation ? 'var(--accent-primary)' : 'var(--text-secondary)',
           cursor: 'pointer',
           display: 'flex',
           alignItems: 'center',
@@ -186,7 +186,7 @@ export function MapView({ restaurants, userLocation, locationError, onRequestLoc
         )}
       </div>
       {locationError && (
-        <p style={{ padding: '6px 4px 0', fontSize: 12, color: '#DC2626' }}>{locationError}</p>
+        <p style={{ padding: '6px 4px 0', fontSize: 12, color: 'var(--danger)' }}>{locationError}</p>
       )}
     </div>
   )

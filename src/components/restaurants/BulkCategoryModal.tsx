@@ -264,7 +264,7 @@ export function BulkCategoryModal({ restaurants, categories, onApply, onClose }:
             </div>
 
             {error && (
-              <div style={{ padding: '12px 14px', borderRadius: 'var(--radius-md)', background: '#FEF2F2', color: '#B91C1C', fontSize: 13 }}>
+              <div style={{ padding: '12px 14px', borderRadius: 'var(--radius-md)', background: 'var(--danger-bg)', color: 'var(--danger)', fontSize: 13 }}>
                 {error}
               </div>
             )}
