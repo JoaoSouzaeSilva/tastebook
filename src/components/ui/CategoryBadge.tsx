@@ -1,4 +1,5 @@
 import type { Category } from '@/types'
+import { withAlpha } from '@/lib/colors'
 
 interface CategoryBadgeProps {
   category: Category
@@ -7,7 +8,7 @@ interface CategoryBadgeProps {
 }
 
 export function CategoryBadge({ category, size = 'sm', onRemove }: CategoryBadgeProps) {
-  const color = category.color || '#C85C38'
+  const color = category.color || '#2E52D8'
 
   return (
     <span
@@ -17,8 +18,8 @@ export function CategoryBadge({ category, size = 'sm', onRemove }: CategoryBadge
         gap: 4,
         padding: size === 'sm' ? '2px 8px' : '4px 12px',
         borderRadius: 'var(--radius-full)',
-        background: `${color}18`,
-        border: `1px solid ${color}35`,
+        background: withAlpha(color, 0.09),
+        border: `1px solid ${withAlpha(color, 0.21)}`,
         color: color,
         fontSize: size === 'sm' ? 11 : 13,
         fontWeight: 500,

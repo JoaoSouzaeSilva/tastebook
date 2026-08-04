@@ -353,14 +353,14 @@ export function BulkImportModal({ categories, existingRestaurants, onImport, onC
                   padding: '14px 16px',
                   borderRadius: 'var(--radius-lg)',
                   background: 'var(--accent-primary-light)',
-                  border: '1px solid rgba(200,92,56,0.18)',
+                  border: '1px solid var(--border-default)',
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: 'var(--accent-primary)', marginBottom: 8 }}>
                   <span>Importing restaurants…</span>
                   <span>{progress.completed} / {progress.total}</span>
                 </div>
-                <div style={{ height: 8, borderRadius: 999, background: 'rgba(200,92,56,0.14)', overflow: 'hidden' }}>
+                <div style={{ height: 8, borderRadius: 999, background: 'var(--bg-subtle)', overflow: 'hidden' }}>
                   <div
                     style={{
                       width: `${progress.total === 0 ? 0 : (progress.completed / progress.total) * 100}%`,
@@ -374,7 +374,7 @@ export function BulkImportModal({ categories, existingRestaurants, onImport, onC
             )}
 
             {error && (
-              <div style={{ padding: '12px 14px', borderRadius: 'var(--radius-md)', background: '#FEF2F2', color: '#B91C1C', fontSize: 13 }}>
+              <div style={{ padding: '12px 14px', borderRadius: 'var(--radius-md)', background: 'var(--danger-bg)', color: 'var(--danger)', fontSize: 13 }}>
                 {error}
               </div>
             )}
@@ -382,9 +382,9 @@ export function BulkImportModal({ categories, existingRestaurants, onImport, onC
             {results.length > 0 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  <span style={summaryPillStyle('rgba(22,163,74,0.12)', '#166534')}>{importedCount} imported</span>
-                  <span style={summaryPillStyle('rgba(180,83,9,0.12)', '#92400E')}>{skippedCount} skipped</span>
-                  <span style={summaryPillStyle('rgba(220,38,38,0.12)', '#991B1B')}>{failedCount} failed</span>
+                  <span style={summaryPillStyle('var(--accent-secondary-light)', 'var(--accent-secondary)')}>{importedCount} imported</span>
+                  <span style={summaryPillStyle('var(--warn-bg)', 'var(--warn)')}>{skippedCount} skipped</span>
+                  <span style={summaryPillStyle('var(--danger-bg)', 'var(--danger)')}>{failedCount} failed</span>
                 </div>
 
                 <div
@@ -501,12 +501,12 @@ function summaryPillStyle(background: string, color: string) {
 
 function statusPillStyle(status: ImportResult['status']) {
   if (status === 'imported') {
-    return summaryPillStyle('rgba(22,163,74,0.12)', '#166534')
+    return summaryPillStyle('var(--accent-secondary-light)', 'var(--accent-secondary)')
   }
   if (status === 'skipped') {
-    return summaryPillStyle('rgba(180,83,9,0.12)', '#92400E')
+    return summaryPillStyle('var(--warn-bg)', 'var(--warn)')
   }
-  return summaryPillStyle('rgba(220,38,38,0.12)', '#991B1B')
+  return summaryPillStyle('var(--danger-bg)', 'var(--danger)')
 }
 
 function describeImportResult(inferredCount: number, finalCount: number, manualCount: number) {

@@ -53,9 +53,9 @@ export default function AuthPage() {
           borderRadius: 'var(--radius-lg)',
           overflow: 'hidden',
           margin: '0 auto 20px',
-          boxShadow: '0 8px 24px rgba(200, 92, 56, 0.3)',
+          boxShadow: 'var(--shadow-accent)',
           background: 'var(--bg-subtle)',
-          border: '1px solid rgba(200,92,56,0.12)',
+          border: '1px solid var(--border-subtle)',
         }}>
           <Image
             src="/tastebook.png"
@@ -157,8 +157,8 @@ export default function AuthPage() {
           {error && (
             <div style={{
               padding: '10px 14px', borderRadius: 'var(--radius-md)',
-              background: '#FEF2F2', border: '1px solid #FECACA',
-              color: '#DC2626', fontSize: 13,
+              background: 'var(--danger-bg)', border: '1px solid var(--danger-border)',
+              color: 'var(--danger)', fontSize: 13,
             }}>
               {error}
             </div>
@@ -187,7 +187,7 @@ export default function AuthPage() {
               fontFamily: 'var(--font-body)',
               transition: 'all 0.2s',
               marginTop: 4,
-              boxShadow: loading ? 'none' : '0 4px 12px rgba(200, 92, 56, 0.35)',
+              boxShadow: loading ? 'none' : '0 4px 12px rgba(27, 63, 184, 0.32)',
             }}
           >
             {loading ? 'Loading…' : mode === 'login' ? 'Sign in' : 'Create account'}

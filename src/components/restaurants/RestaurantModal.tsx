@@ -205,7 +205,7 @@ export function RestaurantModal({ restaurant, categories, onSave, onClose, initi
                 </button>
               </div>
               {placeError && (
-                <p style={{ marginTop: 6, fontSize: 12, color: '#DC2626' }}>{placeError}</p>
+                <p style={{ marginTop: 6, fontSize: 12, color: 'var(--danger)' }}>{placeError}</p>
               )}
             </div>
 
@@ -383,8 +383,8 @@ export function RestaurantModal({ restaurant, categories, onSave, onClose, initi
             {error && (
               <div style={{
                 padding: '10px 14px', borderRadius: 'var(--radius-md)',
-                background: '#FEF2F2', border: '1px solid #FECACA',
-                color: '#DC2626', fontSize: 13,
+                background: 'var(--danger-bg)', border: '1px solid var(--danger-border)',
+                color: 'var(--danger)', fontSize: 13,
               }}>{error}</div>
             )}
           </div>
@@ -413,7 +413,7 @@ export function RestaurantModal({ restaurant, categories, onSave, onClose, initi
               fontSize: 15, fontWeight: 500,
               cursor: saving ? 'not-allowed' : 'pointer',
               fontFamily: 'var(--font-body)',
-              boxShadow: saving ? 'none' : '0 4px 12px rgba(200, 92, 56, 0.3)',
+              boxShadow: saving ? 'none' : 'var(--shadow-accent)',
               transition: 'all 0.2s',
             }}
           >

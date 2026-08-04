@@ -177,7 +177,7 @@ export function RestaurantDetailModal({ restaurant, onClose, onAddVisit, onEdit,
             <button onClick={onEdit} style={{ ...secondaryActionStyle, flexShrink: 0 }}>
               Edit
             </button>
-            <button onClick={onDelete} style={{ ...secondaryActionStyle, color: '#B91C1C', borderColor: '#B91C1C40', flexShrink: 0 }}>
+            <button onClick={onDelete} style={{ ...secondaryActionStyle, color: 'var(--danger)', borderColor: 'var(--danger-border)', flexShrink: 0 }}>
               Delete
             </button>
           </div>
@@ -273,7 +273,7 @@ export function RestaurantDetailModal({ restaurant, onClose, onAddVisit, onEdit,
                             style={{
                               border: 'none',
                               background: 'transparent',
-                              color: '#B91C1C',
+                              color: 'var(--danger)',
                               fontSize: 13,
                               fontWeight: 600,
                               cursor: 'pointer',
@@ -294,8 +294,8 @@ export function RestaurantDetailModal({ restaurant, onClose, onAddVisit, onEdit,
                                 borderRadius: 'var(--radius-full)',
                                 fontSize: 12,
                                 fontWeight: 600,
-                                background: visit.would_go_again ? 'var(--accent-secondary-light)' : '#FEF3C7',
-                                color: visit.would_go_again ? 'var(--accent-secondary)' : '#92400E',
+                                background: visit.would_go_again ? 'var(--accent-secondary-light)' : 'var(--warn-bg)',
+                                color: visit.would_go_again ? 'var(--accent-secondary)' : 'var(--warn)',
                               }}
                             >
                               {visit.would_go_again ? 'Would go again' : 'Would not go again'}
@@ -309,8 +309,8 @@ export function RestaurantDetailModal({ restaurant, onClose, onAddVisit, onEdit,
                                 borderRadius: 'var(--radius-full)',
                                 fontSize: 12,
                                 fontWeight: 600,
-                                background: visit.worth_the_money ? 'var(--accent-gold-light)' : '#FEE2E2',
-                                color: visit.worth_the_money ? '#9A6700' : '#B91C1C',
+                                background: visit.worth_the_money ? 'var(--accent-gold-light)' : 'var(--danger-bg)',
+                                color: visit.worth_the_money ? 'var(--accent-gold)' : 'var(--danger)',
                               }}
                             >
                               {visit.worth_the_money ? 'Worth the money' : 'Not worth the money'}

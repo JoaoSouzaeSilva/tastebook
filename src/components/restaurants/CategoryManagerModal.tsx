@@ -12,12 +12,14 @@ interface CategoryManagerModalProps {
   onClose: () => void
 }
 
-const QUICK_COLORS = ['#C85C38', '#2D6A4F', '#185FA5', '#B8860B', '#E24B4A', '#7F77DD', '#D97706', '#0F766E']
+// Stored verbatim in the DB, so these stay literal hex — riso inks, legible on both
+// the newsprint and the darkroom ground.
+const QUICK_COLORS = ['#2E52D8', '#D91E82', '#0E8F5C', '#B98600', '#D6343A', '#6C5CE0', '#128B84', '#DE6E1F']
 const QUICK_ICONS = ['🍝', '🍣', '🥞', '🕯️', '🍔', '🍕', '🥢', '🐟', '🦞', '🌮', '🍷', '☕']
 
 const emptyDraft: CreateCategoryInput = {
   name: '',
-  color: '#C85C38',
+  color: '#2E52D8',
   icon: '',
 }
 
@@ -45,7 +47,7 @@ export function CategoryManagerModal({ categories, onCreate, onUpdate, onDelete,
     () => ({
       id: 'preview',
       name: draft.name || 'New category',
-      color: draft.color || '#C85C38',
+      color: draft.color || '#2E52D8',
       icon: draft.icon || undefined,
       user_id: '',
       created_at: '',
@@ -264,7 +266,7 @@ export function CategoryManagerModal({ categories, onCreate, onUpdate, onDelete,
               </div>
 
               {error && (
-                <div style={{ padding: '12px 14px', borderRadius: 'var(--radius-md)', background: '#FEF2F2', color: '#B91C1C', fontSize: 13 }}>
+                <div style={{ padding: '12px 14px', borderRadius: 'var(--radius-md)', background: 'var(--danger-bg)', color: 'var(--danger)', fontSize: 13 }}>
                   {error}
                 </div>
               )}
@@ -336,7 +338,7 @@ const inputStyle = {
 const linkButtonStyle = {
   border: 'none',
   background: 'transparent',
-  color: 'var(--accent-primary)',
+  color: '#2E52D8',
   fontSize: 12,
   fontWeight: 600,
   cursor: 'pointer',
@@ -383,7 +385,7 @@ const secondaryMiniButtonStyle = {
 
 const dangerMiniButtonStyle = {
   ...secondaryMiniButtonStyle,
-  color: '#B91C1C',
-  border: '1px solid #FCA5A5',
-  background: '#FEF2F2',
+  color: 'var(--danger)',
+  border: '1px solid var(--danger-border)',
+  background: 'var(--danger-bg)',
 }

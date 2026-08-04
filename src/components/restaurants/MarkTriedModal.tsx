@@ -96,9 +96,9 @@ export function MarkTriedModal({ onSave, onClose, isRepeatVisit = false, initial
     minWidth: 0,
     padding: '12px 14px',
     borderRadius: 'var(--radius-md)',
-    border: `1.5px solid ${selected ? (positive ? 'var(--accent-secondary)' : '#B45309') : 'var(--border-default)'}`,
-    background: selected ? (positive ? 'var(--accent-secondary-light)' : '#FEF3C7') : 'transparent',
-    color: selected ? (positive ? 'var(--accent-secondary)' : '#92400E') : 'var(--text-secondary)',
+    border: `1.5px solid ${selected ? (positive ? 'var(--accent-secondary)' : 'var(--warn)') : 'var(--border-default)'}`,
+    background: selected ? (positive ? 'var(--accent-secondary-light)' : 'var(--warn-bg)') : 'transparent',
+    color: selected ? (positive ? 'var(--accent-secondary)' : 'var(--warn)') : 'var(--text-secondary)',
     fontSize: 14,
     fontWeight: 600,
     cursor: 'pointer',
@@ -297,7 +297,7 @@ export function MarkTriedModal({ onSave, onClose, isRepeatVisit = false, initial
         </div>
 
         {error && (
-          <div style={{ padding: '10px 12px', borderRadius: 'var(--radius-md)', background: '#FEF2F2', color: '#B91C1C', fontSize: 13 }}>
+          <div style={{ padding: '10px 12px', borderRadius: 'var(--radius-md)', background: 'var(--danger-bg)', color: 'var(--danger)', fontSize: 13 }}>
             {error}
           </div>
         )}
@@ -317,12 +317,12 @@ export function MarkTriedModal({ onSave, onClose, isRepeatVisit = false, initial
           <button onClick={handleSave} disabled={saving} style={{
             flex: 2, padding: '13px',
             borderRadius: 'var(--radius-md)',
-            background: saving ? 'var(--border-default)' : 'linear-gradient(135deg, var(--accent-secondary) 0%, #1B4332 100%)',
+            background: saving ? 'var(--border-default)' : 'var(--accent-secondary)',
             border: 'none', color: '#fff',
             fontSize: 15, fontWeight: 500,
             cursor: saving ? 'not-allowed' : 'pointer',
             fontFamily: 'var(--font-body)',
-            boxShadow: saving ? 'none' : '0 4px 12px rgba(45, 106, 79, 0.3)',
+            boxShadow: saving ? 'none' : '0 4px 12px rgba(0, 117, 70, 0.3)',
             transition: 'all 0.2s',
           }}>
             {saving ? 'Saving…' : initialVisit ? 'Save visit' : 'Save review'}

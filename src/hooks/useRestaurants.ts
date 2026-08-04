@@ -5,12 +5,16 @@ import { getRestaurants, getCategories, createRestaurant, updateRestaurant, dele
 import type { Restaurant, Category, FilterState, CreateRestaurantInput, UpdateRestaurantInput, CreateCategoryInput } from '@/types'
 import { getAverageRating, getAverageSpendPerPerson } from '@/lib/reviewStats'
 import { restaurantDistanceKm, type LatLng } from '@/lib/geo'
+import { createClient } from '@/lib/supabase/client'
+import { penFor } from '@/lib/pens'
 
 const defaultFilters: FilterState = {
-  status: 'all',
+  status: 'want_to_try',
   category_id: null,
   search: '',
-  sort: 'newest',
+  sort: 'nearest',
+  favoritesOnly: false,
+  pen: null,
 }
 
 export function useRestaurants() {
@@ -22,6 +26,14 @@ export function useRestaurants() {
   const [error, setError] = useState<string | null>(null)
   const [userLocation, setUserLocation] = useState<LatLng | null>(null)
   const [locationError, setLocationError] = useState<string | null>(null)
+  const [me, setMe] = useState<{ id: string; email: string } | null>(null)
+
+  // Identity drives the pen colours, so it is part of loading the list
+  useEffect(() => {
+    createClient().auth.getUser().then(({ data }) => {
+      if (data.user) setMe({ id: data.user.id, email: data.user.email ?? '' })
+    })
+  }, [])
 
   const requestLocation = useCallback(() => {
     if (typeof navigator === 'undefined' || !navigator.geolocation) {
@@ -66,14 +78,24 @@ export function useRestaurants() {
   // Client-side filtering — instant tab/search/category switching, no extra DB round-trips
   const restaurants = useMemo(() => {
     let result = [...allRestaurants]
+    const searching = Boolean(filters.search)
 
-    if (filters.status === 'favorites') {
-      result = result.filter((r) => r.is_favorite)
-    } else if (filters.status !== 'all') {
+    // Searching deliberately spans both statuses: looking a place up by name is a
+    // question about the whole book, not about the tab you happen to be on. This is
+    // what removed the need for a separate "All" tab.
+    if (!searching) {
       result = result.filter((r) => r.status === filters.status)
     }
 
-    if (filters.search) {
+    if (filters.favoritesOnly) {
+      result = result.filter((r) => r.is_favorite)
+    }
+
+    if (filters.pen) {
+      result = result.filter((r) => penFor(r, me?.id ?? null) === filters.pen)
+    }
+
+    if (searching) {
       const q = filters.search.toLowerCase()
       result = result.filter((restaurant) => {
         const visitNotes = restaurant.visits
@@ -100,30 +122,6 @@ export function useRestaurants() {
         if (ratingDiff !== 0) return ratingDiff
         return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       })
-    } else if (filters.sort === 'name') {
-      result.sort((a, b) => a.name.localeCompare(b.name) || (new Date(b.created_at).getTime() - new Date(a.created_at).getTime()))
-    } else if (filters.sort === 'oldest') {
-      result.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
-    } else if (filters.sort === 'best_value') {
-      result.sort((a, b) => {
-        const spendDiff = (a.average_spend_per_person ?? Number.POSITIVE_INFINITY) - (b.average_spend_per_person ?? Number.POSITIVE_INFINITY)
-        if (spendDiff !== 0) return spendDiff
-        return (b.average_rating ?? b.rating ?? -1) - (a.average_rating ?? a.rating ?? -1)
-      })
-    } else if (filters.sort === 'most_revisited') {
-      result.sort((a, b) => {
-        const visitDiff = b.visits.length - a.visits.length
-        if (visitDiff !== 0) return visitDiff
-        return (b.average_rating ?? b.rating ?? -1) - (a.average_rating ?? a.rating ?? -1)
-      })
-    } else if (filters.sort === 'would_go_again') {
-      result.sort((a, b) => {
-        const aPositive = a.visits.filter((visit) => visit.would_go_again === true).length
-        const bPositive = b.visits.filter((visit) => visit.would_go_again === true).length
-        const positiveDiff = bPositive - aPositive
-        if (positiveDiff !== 0) return positiveDiff
-        return b.visits.length - a.visits.length
-      })
     } else if (filters.sort === 'nearest') {
       result.sort((a, b) => {
         const aDist = restaurantDistanceKm(a, userLocation) ?? Number.POSITIVE_INFINITY
@@ -136,7 +134,17 @@ export function useRestaurants() {
     }
 
     return result
-  }, [allRestaurants, filters.status, filters.search, filters.category_id, filters.sort, userLocation])
+  }, [
+    allRestaurants,
+    filters.status,
+    filters.search,
+    filters.category_id,
+    filters.sort,
+    filters.favoritesOnly,
+    filters.pen,
+    me?.id,
+    userLocation,
+  ])
 
   const addRestaurant = useCallback(async (input: CreateRestaurantInput) => {
     const r = await createRestaurant(input)
@@ -358,6 +366,7 @@ export function useRestaurants() {
   }, [allRestaurants, filters.category_id])
 
   return {
+    me,
     allRestaurants,
     restaurants,
     categories,

@@ -11,7 +11,8 @@ export default function Icon() {
           width: 32,
           height: 32,
           borderRadius: 8,
-          background: 'linear-gradient(135deg, #C85C38 0%, #B8860B 100%)',
+          // Two pens, two inks — the same blue/pink pairing the list is written in
+          background: 'linear-gradient(135deg, #1B3FB8 0%, #C4126D 100%)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',

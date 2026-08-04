@@ -116,22 +116,18 @@ export async function getRestaurants(filters: Partial<FilterState> = {}) {
     query = query.ilike('name', `%${filters.search}%`)
   }
 
-  if (filters.status === 'favorites') {
-    query = query.eq('is_favorite', true)
-  } else if (filters.status && filters.status !== 'all') {
+  if (filters.status) {
     query = query.eq('status', filters.status)
   }
 
+  // Status, favourites, pen, category and search are all applied client-side by
+  // useRestaurants against the full set — this only needs a stable base order.
+  // `nearest` can't be expressed in SQL (it depends on the device position), so it
+  // also falls through to newest and is re-sorted on the client.
   if (filters.sort === 'rating') {
     query = query
       .order('rating', { ascending: false, nullsFirst: false })
       .order('created_at', { ascending: false })
-  } else if (filters.sort === 'name') {
-    query = query
-      .order('name', { ascending: true })
-      .order('created_at', { ascending: false })
-  } else if (filters.sort === 'oldest') {
-    query = query.order('created_at', { ascending: true })
   } else {
     query = query.order('created_at', { ascending: false })
   }

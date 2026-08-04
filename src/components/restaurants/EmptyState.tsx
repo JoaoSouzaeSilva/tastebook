@@ -1,19 +1,18 @@
+import type { RestaurantStatus } from '@/types'
+
 interface EmptyStateProps {
-  status: string
-  searching?: boolean
+  status: RestaurantStatus
+  /** Any narrowing filter is on — search, favourites, a pen or a category */
+  filtered?: boolean
   onAdd: () => void
 }
 
-export function EmptyState({ status, searching = false, onAdd }: EmptyStateProps) {
-  const messages: Record<string, { emoji: string; title: string; hint: string }> = {
-    all: { emoji: '🍽️', title: 'Your list is empty', hint: 'Add the first spot you two want to try.' },
-    want_to_try: { emoji: '🔖', title: 'Nothing on the wishlist', hint: 'Save a place for your next date night.' },
-    tried: { emoji: '✓', title: 'No visits yet', hint: 'Mark a place as tried after you go.' },
-    favorites: { emoji: '★', title: 'No favourites yet', hint: 'Star the places you keep coming back to.' },
-  }
-  const { emoji, title, hint } = searching
-    ? { emoji: '🔍', title: 'No matches', hint: 'Try a different search or clear the filters.' }
-    : messages[status] ?? messages.all
+export function EmptyState({ status, filtered = false, onAdd }: EmptyStateProps) {
+  const copy = filtered
+    ? { title: 'nothing matches', hint: 'Clear the search, star or pen filter.' }
+    : status === 'tried'
+    ? { title: 'no ticks yet', hint: 'Tick a place off after you go and it lands here.' }
+    : { title: 'nothing to try', hint: 'Add the first place you two want to eat at.' }
 
   return (
     <div
@@ -22,33 +21,34 @@ export function EmptyState({ status, searching = false, onAdd }: EmptyStateProps
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '64px 32px',
+        padding: '72px 32px',
         textAlign: 'center',
+        gap: 8,
       }}
     >
-      <div style={{ fontSize: 52, marginBottom: 16, opacity: 0.6 }}>{emoji}</div>
-      <h3 className="font-display" style={{ fontSize: 22, fontWeight: 500, color: 'var(--text-primary)', marginBottom: 6 }}>
-        {title}
+      <h3 className="font-script" style={{ fontSize: 34, fontWeight: 400, color: 'var(--text-secondary)', lineHeight: 1.1 }}>
+        {copy.title}
       </h3>
-      <p style={{ fontSize: 14, color: 'var(--text-muted)', marginBottom: 4 }}>{hint}</p>
-      {!searching && (status === 'all' || status === 'want_to_try') && (
+      <p className="font-stamp" style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>
+        {copy.hint}
+      </p>
+      {!filtered && status === 'want_to_try' && (
         <button
           onClick={onAdd}
+          className="label-caps"
           style={{
-            padding: '12px 24px',
+            marginTop: 14,
+            padding: '12px 22px 11px',
             borderRadius: 'var(--radius-full)',
-            background: 'linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-primary-dark) 100%)',
+            background: 'var(--accent-primary)',
             border: 'none',
             color: '#fff',
-            fontSize: 15,
-            fontWeight: 500,
+            fontSize: 10.5,
             cursor: 'pointer',
-            fontFamily: 'var(--font-body)',
-            boxShadow: '0 4px 12px rgba(200, 92, 56, 0.3)',
-            marginTop: 16,
+            boxShadow: 'var(--shadow-accent)',
           }}
         >
-          Add a restaurant
+          Add a place
         </button>
       )}
     </div>

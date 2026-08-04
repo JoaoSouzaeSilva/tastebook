@@ -36,9 +36,9 @@ export function ManageSheet({ actions, onClose }: ManageSheetProps) {
                 textAlign: 'left',
                 padding: '14px 16px',
                 borderRadius: 'var(--radius-lg)',
-                border: action.tone === 'accent' ? '1px solid rgba(200,92,56,0.22)' : '1px solid var(--border-subtle)',
+                border: action.tone === 'accent' ? '1px solid var(--border-default)' : '1px solid var(--border-subtle)',
                 background: action.tone === 'accent' ? 'var(--accent-primary-light)' : 'var(--bg-base)',
-                color: action.tone === 'danger' ? '#B91C1C' : action.tone === 'accent' ? 'var(--accent-primary)' : 'var(--text-primary)',
+                color: action.tone === 'danger' ? 'var(--danger)' : action.tone === 'accent' ? 'var(--accent-primary)' : 'var(--text-primary)',
                 cursor: 'pointer',
                 fontFamily: 'var(--font-body)',
               }}
