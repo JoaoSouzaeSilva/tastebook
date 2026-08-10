@@ -16,8 +16,12 @@ export interface People {
  * unlabelled pen is still a usable colour, so a hiccup here must not take the header
  * down with it.
  */
-export function usePeople(myUserId: string | null, restaurants: Restaurant[]): People {
+export function usePeople(
+  me: { id: string; email: string } | null,
+  restaurants: Restaurant[]
+): People {
   const [people, setPeople] = useState<Person[]>([])
+  const myUserId = me?.id ?? null
 
   useEffect(() => {
     if (!myUserId) return
@@ -27,7 +31,10 @@ export function usePeople(myUserId: string | null, restaurants: Restaurant[]): P
       .then((loaded) => {
         if (!cancelled) setPeople(loaded)
       })
-      .catch(() => {})
+      .catch((error) => {
+        // "mine" still resolves from the signed-in email; only "theirs" is lost.
+        console.warn('Could not load who shares this list:', error)
+      })
 
     return () => {
       cancelled = true
@@ -36,9 +43,9 @@ export function usePeople(myUserId: string | null, restaurants: Restaurant[]): P
 
   return useMemo(
     () => ({
-      initials: penInitialsFrom(people, myUserId, restaurants),
+      initials: penInitialsFrom(people, me, restaurants),
       initialOf: (userId: string | null | undefined) => initialOf(people, userId),
     }),
-    [people, myUserId, restaurants]
+    [people, me, restaurants]
   )
 }

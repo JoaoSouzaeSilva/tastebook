@@ -55,7 +55,7 @@ export default function HomePage() {
   const [triedTargetId, setTriedTargetId] = useState<string | null>(null)
   const [editingVisitTarget, setEditingVisitTarget] = useState<{ restaurantId: string; visit: RestaurantVisit } | null>(null)
 
-  const people = usePeople(me?.id ?? null, allRestaurants)
+  const people = usePeople(me, allRestaurants)
   const { invite, dismiss: dismissInvite } = useTonightInvite(me?.id ?? null)
 
   useEffect(() => {

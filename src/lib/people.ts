@@ -18,9 +18,19 @@ export interface PenInitials {
 
 export async function fetchPeople(): Promise<Person[]> {
   const response = await fetch('/api/people')
-  if (!response.ok) throw new Error('Could not load who shares this list')
+  // An unauthenticated request is redirected to /auth (HTML, but a 200), so `ok`
+  // alone isn't enough — a non-JSON body means we never reached the route.
+  if (!response.ok || !response.headers.get('content-type')?.includes('application/json')) {
+    throw new Error('Could not load who shares this list')
+  }
   const body = (await response.json()) as { people?: Person[] }
   return body.people ?? []
+}
+
+/** The letter a pen writes in, taken straight from an email address. */
+export function initialFromEmail(email: string | null | undefined): string | null {
+  const trimmed = email?.trim()
+  return trimmed ? trimmed[0].toUpperCase() : null
 }
 
 /** Exact initial for a specific row's author — correct no matter how many accounts exist. */
@@ -52,11 +62,14 @@ export function theirUserId(restaurants: Restaurant[], myUserId: string | null):
 
 export function penInitialsFrom(
   people: Person[],
-  myUserId: string | null,
+  me: { id: string; email: string } | null,
   restaurants: Restaurant[]
 ): PenInitials {
+  const myUserId = me?.id ?? null
   return {
-    mine: initialOf(people, myUserId),
+    // The browser already knows the current account's address, so "mine" never
+    // depends on /api/people loading — fall back to the roster only if it must.
+    mine: initialFromEmail(me?.email) ?? initialOf(people, myUserId),
     theirs: initialOf(people, theirUserId(restaurants, myUserId)),
   }
 }
