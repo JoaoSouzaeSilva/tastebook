@@ -28,21 +28,31 @@ To enable it:
    - `SUPABASE_SERVICE_ROLE_KEY`
 3. Optionally run the workflow manually once with `workflow_dispatch` to verify it works before relying on the schedule.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Deploying
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Tastebook is a standard Next.js app with server routes and a proxy (middleware), so
+it needs a host that runs a Node.js server — any of Vercel, Netlify, Cloudflare
+Workers (via OpenNext), or a plain container running `npm run build && npm run start`.
+Static hosting (GitHub Pages, S3) will not work.
 
-## Learn More
+### Environment variables
 
-To learn more about Next.js, take a look at the following resources:
+| Name | Where it is used |
+| --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | Browser and server — Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Browser and server — Supabase anon (publishable) key |
+| `GOOGLE_MAPS_API_KEY` | Server only — `/api/place-lookup` (Places API) |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+`SUPABASE_SERVICE_ROLE_KEY` is **not** needed by the app. It is only used by the
+keepalive GitHub Action, as a repository secret.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### After moving to a new domain
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. In Supabase, open **Authentication → URL Configuration** and set the **Site URL**
+   to the new domain. Add `https://<new-domain>/auth/callback` to **Redirect URLs**.
+   Sign-in is email + password, so this only affects the confirmation link sent on
+   sign-up.
+2. If the Google Maps key is restricted, add the new host to its allowed list. The
+   key is only called server-side, so an HTTP-referrer restriction is not required.
+3. Do a hard refresh on any phone that has the app installed as a PWA so it picks
+   up the new origin.
