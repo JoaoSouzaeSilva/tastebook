@@ -1,10 +1,9 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import type { Category, FilterState, Pen, SortKey } from '@/types'
+import type { Category, FilterState, SortKey } from '@/types'
 import { formatEuroAmount } from '@/lib/reviewStats'
 import { withAlpha } from '@/lib/colors'
-import type { PenInitials } from '@/lib/people'
 
 const SORT_LABELS: Record<SortKey, string> = {
   nearest: 'nearest',
@@ -15,8 +14,6 @@ const SORT_LABELS: Record<SortKey, string> = {
 interface LedgerHeaderProps {
   filters: FilterState
   categories: Category[]
-  /** First letter of each account's email, resolved server-side */
-  initials: PenInitials
   counts: { wantToTry: number; tried: number }
   summary: {
     averageRating: number | null
@@ -30,14 +27,13 @@ interface LedgerHeaderProps {
 }
 
 /**
- * Two rows, not four. Row one is identity and the orthogonal filters (whose pen,
- * favourites, search); row two is the only mutually-exclusive choice there is.
+ * Two rows, not four. Row one is identity and the orthogonal filters (favourites,
+ * search); row two is the only mutually-exclusive choice there is.
  * Sort and category live behind one chip, and the old Stats tab is the stamp line.
  */
 export function LedgerHeader({
   filters,
   categories,
-  initials,
   counts,
   summary,
   onChange,
@@ -96,8 +92,6 @@ export function LedgerHeader({
         </button>
 
         <div style={{ flex: 1 }} />
-
-        <PenToggles active={filters.pen} initials={initials} onChange={(pen) => onChange({ pen })} />
 
         <IconButton
           label="Search places and notes"
@@ -264,57 +258,6 @@ export function LedgerHeader({
         {stamp.join(' · ')}
       </button>
     </header>
-  )
-}
-
-function PenToggles({
-  active,
-  initials,
-  onChange,
-}: {
-  active: Pen | null
-  initials: PenInitials
-  onChange: (pen: Pen | null) => void
-}) {
-  return (
-    <div style={{ display: 'flex', gap: 5 }}>
-      {(['mine', 'theirs'] as const).map((pen) => {
-        const on = active === pen
-        const color = pen === 'mine' ? 'var(--pen-mine)' : 'var(--pen-theirs)'
-        const initial = pen === 'mine' ? initials.mine : initials.theirs
-        return (
-          <button
-            key={pen}
-            aria-pressed={on}
-            aria-label={
-              pen === 'mine'
-                ? `Only places ${initials.mine ?? 'you'} added`
-                : `Only places ${initials.theirs ?? 'they'} added`
-            }
-            onClick={() => onChange(on ? null : pen)}
-            className="label-caps"
-            style={{
-              width: 25,
-              height: 25,
-              display: 'grid',
-              placeItems: 'center',
-              borderRadius: 'var(--radius-full)',
-              border: `1.8px solid ${color}`,
-              background: on ? color : 'transparent',
-              color: on ? 'var(--bg-base)' : color,
-              cursor: 'pointer',
-              fontSize: 10.5,
-              letterSpacing: 0,
-              paddingTop: 1,
-              opacity: active && !on ? 0.32 : 1,
-              transition: 'background 0.15s, color 0.15s, opacity 0.15s',
-            }}
-          >
-            {initial}
-          </button>
-        )
-      })}
-    </div>
   )
 }
 

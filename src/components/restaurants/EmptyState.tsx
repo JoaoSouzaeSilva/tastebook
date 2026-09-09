@@ -2,14 +2,14 @@ import type { RestaurantStatus } from '@/types'
 
 interface EmptyStateProps {
   status: RestaurantStatus
-  /** Any narrowing filter is on — search, favourites, a pen or a category */
+  /** Any narrowing filter is on — search, favourites or a category */
   filtered?: boolean
   onAdd: () => void
 }
 
 export function EmptyState({ status, filtered = false, onAdd }: EmptyStateProps) {
   const copy = filtered
-    ? { title: 'nothing matches', hint: 'Clear the search, star or pen filter.' }
+    ? { title: 'nothing matches', hint: 'Clear the search, star or category filter.' }
     : status === 'tried'
     ? { title: 'no ticks yet', hint: 'Tick a place off after you go and it lands here.' }
     : { title: 'nothing to try', hint: 'Add the first place you two want to eat at.' }

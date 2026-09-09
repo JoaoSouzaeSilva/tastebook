@@ -5,8 +5,6 @@ import { getRestaurants, getCategories, createRestaurant, updateRestaurant, dele
 import type { Restaurant, Category, FilterState, CreateRestaurantInput, UpdateRestaurantInput, CreateCategoryInput } from '@/types'
 import { getAverageRating, getAverageSpendPerPerson } from '@/lib/reviewStats'
 import { restaurantDistanceKm, type LatLng } from '@/lib/geo'
-import { createClient } from '@/lib/supabase/client'
-import { penFor } from '@/lib/pens'
 
 const defaultFilters: FilterState = {
   status: 'want_to_try',
@@ -14,7 +12,6 @@ const defaultFilters: FilterState = {
   search: '',
   sort: 'nearest',
   favoritesOnly: false,
-  pen: null,
 }
 
 export function useRestaurants() {
@@ -26,14 +23,6 @@ export function useRestaurants() {
   const [error, setError] = useState<string | null>(null)
   const [userLocation, setUserLocation] = useState<LatLng | null>(null)
   const [locationError, setLocationError] = useState<string | null>(null)
-  const [me, setMe] = useState<{ id: string; email: string } | null>(null)
-
-  // Identity drives the pen colours, so it is part of loading the list
-  useEffect(() => {
-    createClient().auth.getUser().then(({ data }) => {
-      if (data.user) setMe({ id: data.user.id, email: data.user.email ?? '' })
-    })
-  }, [])
 
   const requestLocation = useCallback(() => {
     if (typeof navigator === 'undefined' || !navigator.geolocation) {
@@ -91,10 +80,6 @@ export function useRestaurants() {
       result = result.filter((r) => r.is_favorite)
     }
 
-    if (filters.pen) {
-      result = result.filter((r) => penFor(r, me?.id ?? null) === filters.pen)
-    }
-
     if (searching) {
       const q = filters.search.toLowerCase()
       result = result.filter((restaurant) => {
@@ -141,8 +126,6 @@ export function useRestaurants() {
     filters.category_id,
     filters.sort,
     filters.favoritesOnly,
-    filters.pen,
-    me?.id,
     userLocation,
   ])
 
@@ -366,7 +349,6 @@ export function useRestaurants() {
   }, [allRestaurants, filters.category_id])
 
   return {
-    me,
     allRestaurants,
     restaurants,
     categories,

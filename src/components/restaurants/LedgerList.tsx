@@ -1,17 +1,15 @@
 'use client'
 
 import { useRef, useState } from 'react'
-import type { Pen, Restaurant } from '@/types'
+import type { Restaurant } from '@/types'
 import { formatEuroAmount, getLatestVisit } from '@/lib/reviewStats'
 import { formatDistance } from '@/lib/geo'
-import { penColor } from '@/lib/pens'
 
 const ACTION_WIDTH = 132
 const OPEN_THRESHOLD = 56
 
 interface LedgerRowProps {
   restaurant: Restaurant
-  pen: Pen
   distanceKm: number | null
   isOpen: boolean
   onOpenChange: (open: boolean) => void
@@ -23,13 +21,11 @@ interface LedgerRowProps {
 }
 
 /**
- * One line in the notebook: a checkbox, the name in whoever's ink, and a stamped
- * meta line. Everything else — starring, deleting — lives under a leftward swipe,
+ * One line in the notebook: a checkbox, the name, and a stamped meta line. Everything else — starring, deleting — lives under a leftward swipe,
  * which is where an iPhone user already looks for it.
  */
 function LedgerRow({
   restaurant,
-  pen,
   distanceKm,
   isOpen,
   onOpenChange,
@@ -226,7 +222,7 @@ function LedgerRow({
               fontWeight: 500,
               letterSpacing: '-0.01em',
               lineHeight: 1.2,
-              color: penColor(pen),
+              color: 'var(--text-primary)',
               whiteSpace: 'nowrap',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
@@ -265,7 +261,6 @@ function LedgerRow({
 
 interface LedgerListProps {
   restaurants: Restaurant[]
-  penOf: (restaurant: Restaurant) => Pen
   distanceOf: (restaurant: Restaurant) => number | null
   onOpen: (id: string) => void
   onMarkTried: (id: string) => void
@@ -275,7 +270,6 @@ interface LedgerListProps {
 
 export function LedgerList({
   restaurants,
-  penOf,
   distanceOf,
   onOpen,
   onMarkTried,
@@ -291,7 +285,6 @@ export function LedgerList({
         <LedgerRow
           key={restaurant.id}
           restaurant={restaurant}
-          pen={penOf(restaurant)}
           distanceKm={distanceOf(restaurant)}
           isOpen={openId === restaurant.id}
           onOpenChange={(open) => setOpenId(open ? restaurant.id : null)}

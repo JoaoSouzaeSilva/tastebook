@@ -105,21 +105,17 @@ export type CreateCategoryInput = {
   icon?: string
 }
 
-/** Whose handwriting a row is in — derived from `user_id`, not stored. */
-export type Pen = 'mine' | 'theirs'
-
 export type SortKey = 'nearest' | 'newest' | 'rating'
 
 export interface FilterState {
   /**
-   * Only the two mutually-exclusive states live here. Favourites and pen are
-   * orthogonal filters that stack on top, so "favourites we haven't tried yet"
-   * is now expressible — it wasn't when favourites was a fourth status.
+   * Only the two mutually-exclusive states live here. Favourites is an
+   * orthogonal filter that stacks on top, so "favourites we haven't tried yet"
+   * is expressible — it wasn't when favourites was a third status.
    */
   status: RestaurantStatus
   category_id: string | null
   search: string
   sort: SortKey
   favoritesOnly: boolean
-  pen: Pen | null
 }

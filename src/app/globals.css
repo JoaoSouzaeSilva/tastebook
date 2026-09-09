@@ -34,9 +34,9 @@
   --accent-gold: #9A6A00;
   --accent-gold-light: #F7EBCB;
 
-  /* Two pens — whose handwriting a row is in. Derived from restaurants.user_id. */
-  --pen-mine: #1B3FB8;
-  --pen-theirs: #C4126D;
+  /* Risograph plates — used by the wordmark's mis-registration effect. */
+  --riso-blue: #1B3FB8;
+  --riso-pink: #C4126D;
 
   /* Semantic, kept separate from the accent */
   --danger: #B3161C;
@@ -81,8 +81,8 @@
   --accent-gold: #FFD34E;
   --accent-gold-light: #2A2208;
 
-  --pen-mine: #7C97FF;
-  --pen-theirs: #FF6FB4;
+  --riso-blue: #7C97FF;
+  --riso-pink: #FF6FB4;
 
   --danger: #FF8080;
   --danger-bg: #2E1618;
@@ -136,8 +136,8 @@ body { min-height: 100svh; background-color: var(--bg-base); overflow-x: hidden;
 /* Riso mis-registration: a pink plate printed a hair off behind the blue one. */
 .wordmark {
   font-family: var(--font-script);
-  color: var(--pen-mine);
-  text-shadow: 1.5px 1.5px 0 color-mix(in srgb, var(--pen-theirs) 42%, transparent);
+  color: var(--riso-blue);
+  text-shadow: 1.5px 1.5px 0 color-mix(in srgb, var(--riso-pink) 42%, transparent);
 }
 
 /* ── Notebook paper ─────────────────────────────────────────── */
