@@ -9,10 +9,10 @@ interface EmptyStateProps {
 
 export function EmptyState({ status, filtered = false, onAdd }: EmptyStateProps) {
   const copy = filtered
-    ? { title: 'nothing matches', hint: 'Clear the search, star or category filter.' }
+    ? { title: 'Nothing matches', hint: 'Try clearing the search, the star or the category.' }
     : status === 'tried'
-    ? { title: 'no ticks yet', hint: 'Tick a place off after you go and it lands here.' }
-    : { title: 'nothing to try', hint: 'Add the first place you two want to eat at.' }
+    ? { title: 'No visits yet', hint: 'Tick a place off after you go and it lands here.' }
+    : { title: 'Nothing to try', hint: 'Add the first place you two want to eat at.' }
 
   return (
     <div
@@ -26,24 +26,26 @@ export function EmptyState({ status, filtered = false, onAdd }: EmptyStateProps)
         gap: 8,
       }}
     >
-      <h3 className="font-script" style={{ fontSize: 34, fontWeight: 400, color: 'var(--text-secondary)', lineHeight: 1.1 }}>
+      <h3 className="font-script" style={{ fontSize: 32, color: 'var(--text-primary)', lineHeight: 1.1 }}>
         {copy.title}
       </h3>
-      <p className="font-stamp" style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>
+      <p style={{ fontSize: 15, lineHeight: 1.5, color: 'var(--text-secondary)', maxWidth: '30ch' }}>
         {copy.hint}
       </p>
       {!filtered && status === 'want_to_try' && (
         <button
           onClick={onAdd}
-          className="label-caps"
+          className="pressable"
           style={{
-            marginTop: 14,
-            padding: '12px 22px 11px',
+            marginTop: 16,
+            height: 48,
+            padding: '0 24px',
             borderRadius: 'var(--radius-full)',
             background: 'var(--accent-primary)',
             border: 'none',
-            color: '#fff',
-            fontSize: 10.5,
+            color: 'var(--on-accent)',
+            fontSize: 15,
+            fontWeight: 600,
             cursor: 'pointer',
             boxShadow: 'var(--shadow-accent)',
           }}

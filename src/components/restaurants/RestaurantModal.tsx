@@ -4,6 +4,7 @@ import { useState } from 'react'
 import type { Restaurant, Category, CreateRestaurantInput, PriceLevel } from '@/types'
 import { StarRating } from '../ui/StarRating'
 import { PriceIndicator } from '../ui/PriceIndicator'
+import { withAlpha } from '@/lib/colors'
 import { CategoryBadge } from '../ui/CategoryBadge'
 import { Sheet, SheetHeader, SheetBody, SheetFooter } from '../ui/Sheet'
 import { AddModeToggle } from './AddModeToggle'
@@ -127,10 +128,10 @@ export function RestaurantModal({ restaurant, categories, onSave, onClose, initi
   }
 
   const inputStyle = {
-    width: '100%', padding: '11px 14px',
-    border: '1.5px solid var(--border-default)',
+    width: '100%', padding: '12px 14px',
+    border: '1px solid var(--border-default)',
     borderRadius: 'var(--radius-md)',
-    fontSize: 15, background: 'var(--bg-base)',
+    fontSize: 16, background: 'var(--bg-elevated)',
     color: 'var(--text-primary)',
     outline: 'none', transition: 'border-color 0.2s',
     fontFamily: 'var(--font-body)',
@@ -138,9 +139,9 @@ export function RestaurantModal({ restaurant, categories, onSave, onClose, initi
 
   const labelStyle = {
     display: 'block' as const,
-    fontSize: 13, fontWeight: 500,
+    fontSize: 14, fontWeight: 500,
     color: 'var(--text-secondary)',
-    marginBottom: 6,
+    marginBottom: 7,
   }
 
   return (
@@ -188,12 +189,12 @@ export function RestaurantModal({ restaurant, categories, onSave, onClose, initi
                   title="Fill fields from Google Maps"
                   style={{
                     flexShrink: 0,
-                    padding: '0 14px',
+                    padding: '0 16px',
                     borderRadius: 'var(--radius-md)',
-                    border: '1.5px solid var(--accent-primary)',
+                    border: 'none',
                     background: fetchingPlace ? 'var(--bg-subtle)' : 'var(--accent-primary-light)',
                     color: 'var(--accent-primary)',
-                    fontSize: 13, fontWeight: 500,
+                    fontSize: 15, fontWeight: 600,
                     cursor: (!mapsLink.trim() || fetchingPlace) ? 'not-allowed' : 'pointer',
                     fontFamily: 'var(--font-body)',
                     opacity: !mapsLink.trim() ? 0.4 : 1,
@@ -201,7 +202,7 @@ export function RestaurantModal({ restaurant, categories, onSave, onClose, initi
                     transition: 'all 0.15s',
                   }}
                 >
-                  {fetchingPlace ? '…' : '✦ Fill'}
+                  {fetchingPlace ? 'Filling…' : 'Fill in'}
                 </button>
               </div>
               {placeError && (
@@ -227,20 +228,20 @@ export function RestaurantModal({ restaurant, categories, onSave, onClose, initi
               <label style={labelStyle}>Status</label>
               <div style={{ display: 'flex', gap: 8 }}>
                 {([
-                  { value: 'want_to_try', label: '🔖 Want to try' },
-                  { value: 'tried', label: '✓ Tried it' },
+                  { value: 'want_to_try', label: 'Want to try' },
+                  { value: 'tried', label: 'Been there' },
                 ] as const).map(({ value, label }) => (
                   <button
                     key={value}
                     type="button"
                     onClick={() => setStatus(value)}
                     style={{
-                      flex: 1, padding: '10px 0',
-                      borderRadius: 'var(--radius-md)',
-                      border: `2px solid ${status === value ? 'var(--accent-primary)' : 'var(--border-default)'}`,
-                      background: status === value ? 'var(--accent-primary-light)' : 'transparent',
-                      color: status === value ? 'var(--accent-primary)' : 'var(--text-secondary)',
-                      fontSize: 14, fontWeight: status === value ? 500 : 400,
+                      flex: 1, minHeight: 46,
+                      borderRadius: 'var(--radius-full)',
+                      border: `1.5px solid ${status === value ? 'var(--text-primary)' : 'var(--border-default)'}`,
+                      background: status === value ? 'var(--text-primary)' : 'var(--bg-elevated)',
+                      color: status === value ? 'var(--bg-surface)' : 'var(--text-secondary)',
+                      fontSize: 15, fontWeight: status === value ? 600 : 500,
                       cursor: 'pointer', fontFamily: 'var(--font-body)',
                       transition: 'all 0.15s',
                     }}
@@ -272,17 +273,16 @@ export function RestaurantModal({ restaurant, categories, onSave, onClose, initi
                       type="button"
                       onClick={() => toggleCategory(cat.id)}
                       style={{
-                        padding: '5px 12px',
+                        minHeight: 38, padding: '0 14px',
                         borderRadius: 'var(--radius-full)',
                         border: `1.5px solid ${selected ? cat.color : 'var(--border-default)'}`,
-                        background: selected ? `${cat.color}18` : 'transparent',
-                        color: selected ? cat.color : 'var(--text-muted)',
-                        fontSize: 13, fontWeight: selected ? 500 : 400,
+                        background: selected ? withAlpha(cat.color, 0.14) : 'var(--bg-elevated)',
+                        color: 'var(--text-primary)',
+                        fontSize: 14, fontWeight: selected ? 600 : 500,
                         cursor: 'pointer', fontFamily: 'var(--font-body)',
                         transition: 'all 0.15s',
                       }}
                     >
-                      {cat.icon && <span style={{ marginRight: 4 }}>{cat.icon}</span>}
                       {cat.name}
                     </button>
                   )
@@ -393,8 +393,8 @@ export function RestaurantModal({ restaurant, categories, onSave, onClose, initi
 
       <SheetFooter>
         <button onClick={onClose} type="button" style={{
-            flex: 1, padding: '13px',
-            borderRadius: 'var(--radius-md)',
+            flex: 1, height: 50,
+            borderRadius: 'var(--radius-full)',
             border: '1.5px solid var(--border-default)',
             background: 'transparent', color: 'var(--text-secondary)',
             fontSize: 15, fontWeight: 500, cursor: 'pointer',
@@ -406,10 +406,10 @@ export function RestaurantModal({ restaurant, categories, onSave, onClose, initi
             onClick={handleSubmit}
             disabled={saving}
             style={{
-              flex: 2, padding: '13px',
-              borderRadius: 'var(--radius-md)',
-              background: saving ? 'var(--border-default)' : 'linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-primary-dark) 100%)',
-              border: 'none', color: '#fff',
+              flex: 2, height: 50,
+              borderRadius: 'var(--radius-full)',
+              background: saving ? 'var(--border-default)' : 'var(--accent-primary)',
+              border: 'none', color: 'var(--on-accent)',
               fontSize: 15, fontWeight: 500,
               cursor: saving ? 'not-allowed' : 'pointer',
               fontFamily: 'var(--font-body)',

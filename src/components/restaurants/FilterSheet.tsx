@@ -26,11 +26,11 @@ export function FilterSheet({ filters, categories, onChange, onClose }: FilterSh
   return (
     <Sheet onClose={onClose}>
       <SheetBody style={{ padding: '4px 20px max(24px, env(safe-area-inset-bottom))' }}>
-        <h2 className="font-script" style={{ fontSize: 27, color: 'var(--text-primary)', padding: '2px 2px 10px' }}>
-          sort &amp; narrow
+        <h2 className="font-script" style={{ fontSize: 30, color: 'var(--text-primary)', padding: '4px 2px 14px' }}>
+          Sort &amp; filter
         </h2>
 
-        <div className="label-caps" style={{ fontSize: 10, color: 'var(--text-muted)', padding: '4px 2px 8px' }}>
+        <div className="eyebrow" style={{ padding: '0 2px 8px' }}>
           Order
         </div>
         <div
@@ -56,7 +56,8 @@ export function FilterSheet({ filters, categories, onChange, onClose }: FilterSh
                   gap: 12,
                   width: '100%',
                   textAlign: 'left',
-                  padding: '13px 15px',
+                  minHeight: 60,
+                  padding: '10px 16px',
                   border: 'none',
                   borderTop: index === 0 ? 'none' : '1px solid var(--border-subtle)',
                   background: 'transparent',
@@ -64,8 +65,8 @@ export function FilterSheet({ filters, categories, onChange, onClose }: FilterSh
                 }}
               >
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 15, fontWeight: 500, color: 'var(--text-primary)' }}>{sort.label}</div>
-                  <div className="font-stamp" style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
+                  <div style={{ fontSize: 16, fontWeight: 500, color: 'var(--text-primary)' }}>{sort.label}</div>
+                  <div style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 2 }}>
                     {sort.hint}
                   </div>
                 </div>
@@ -81,7 +82,7 @@ export function FilterSheet({ filters, categories, onChange, onClose }: FilterSh
 
         {categories.length > 0 && (
           <>
-            <div className="label-caps" style={{ fontSize: 10, color: 'var(--text-muted)', padding: '20px 2px 8px' }}>
+            <div className="eyebrow" style={{ padding: '24px 2px 8px' }}>
               Category
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
@@ -103,7 +104,6 @@ export function FilterSheet({ filters, categories, onChange, onClose }: FilterSh
                   }}
                   style={chipStyle(filters.category_id === category.id, category.color)}
                 >
-                  {category.icon && <span style={{ marginRight: 5 }}>{category.icon}</span>}
                   {category.name}
                 </button>
               ))}
@@ -117,14 +117,15 @@ export function FilterSheet({ filters, categories, onChange, onClose }: FilterSh
 
 function chipStyle(active: boolean, color: string): React.CSSProperties {
   return {
-    padding: '7px 14px',
+    minHeight: 40,
+    padding: '0 15px',
     borderRadius: 'var(--radius-full)',
     border: `1.5px solid ${active ? color : 'var(--border-default)'}`,
-    background: active ? withAlpha(color, 0.1) : 'transparent',
-    color: active ? color : 'var(--text-secondary)',
+    background: active ? withAlpha(color, 0.14) : 'var(--bg-elevated)',
+    color: 'var(--text-primary)',
     cursor: 'pointer',
-    fontSize: 13,
+    fontSize: 14.5,
     fontFamily: 'var(--font-body)',
-    fontWeight: 500,
+    fontWeight: active ? 600 : 500,
   }
 }

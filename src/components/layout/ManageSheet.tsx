@@ -17,14 +17,12 @@ export function ManageSheet({ actions, onClose }: ManageSheetProps) {
   return (
     <Sheet onClose={onClose}>
       <SheetBody style={{ padding: '4px 20px max(20px, env(safe-area-inset-bottom))' }}>
-        <div style={{ padding: '4px 4px 14px' }}>
-          <h2 className="font-display" style={{ fontSize: 24, color: 'var(--text-primary)', marginBottom: 4 }}>
-            Manage Tastebook
-          </h2>
-        </div>
+        <h2 className="font-script" style={{ fontSize: 30, color: 'var(--text-primary)', padding: '4px 2px 14px' }}>
+          Settings
+        </h2>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {actions.map((action) => (
+        <div style={{ borderRadius: 'var(--radius-lg)', background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)', overflow: 'hidden' }}>
+          {actions.map((action, index) => (
             <button
               key={action.label}
               onClick={() => {
@@ -33,17 +31,26 @@ export function ManageSheet({ actions, onClose }: ManageSheetProps) {
               }}
               style={{
                 width: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
                 textAlign: 'left',
-                padding: '14px 16px',
-                borderRadius: 'var(--radius-lg)',
-                border: action.tone === 'accent' ? '1px solid var(--border-default)' : '1px solid var(--border-subtle)',
-                background: action.tone === 'accent' ? 'var(--accent-primary-light)' : 'var(--bg-base)',
+                minHeight: 54,
+                padding: '0 16px',
+                border: 'none',
+                borderTop: index === 0 ? 'none' : '1px solid var(--border-subtle)',
+                background: 'transparent',
                 color: action.tone === 'danger' ? 'var(--danger)' : action.tone === 'accent' ? 'var(--accent-primary)' : 'var(--text-primary)',
-                cursor: 'pointer',
-                fontFamily: 'var(--font-body)',
+                fontSize: 16,
+                fontWeight: 500,
               }}
             >
-              <div style={{ fontSize: 15, fontWeight: 600 }}>{action.label}</div>
+              {action.label}
+              {action.tone !== 'danger' && (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <path d="m9 6 6 6-6 6" />
+                </svg>
+              )}
             </button>
           ))}
         </div>
@@ -52,16 +59,14 @@ export function ManageSheet({ actions, onClose }: ManageSheetProps) {
           onClick={onClose}
           style={{
             width: '100%',
-            marginTop: 14,
-            padding: '14px 16px',
-            borderRadius: 'var(--radius-lg)',
+            marginTop: 12,
+            height: 50,
+            borderRadius: 'var(--radius-full)',
             border: '1px solid var(--border-default)',
             background: 'transparent',
             color: 'var(--text-secondary)',
-            cursor: 'pointer',
-            fontFamily: 'var(--font-body)',
             fontSize: 15,
-            fontWeight: 600,
+            fontWeight: 500,
           }}
         >
           Close

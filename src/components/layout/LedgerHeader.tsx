@@ -2,24 +2,18 @@
 
 import { useEffect, useRef, useState } from 'react'
 import type { Category, FilterState, SortKey } from '@/types'
-import { formatEuroAmount } from '@/lib/reviewStats'
 import { withAlpha } from '@/lib/colors'
 
 const SORT_LABELS: Record<SortKey, string> = {
-  nearest: 'nearest',
-  newest: 'newest',
-  rating: 'top rated',
+  nearest: 'Nearest',
+  newest: 'Newest',
+  rating: 'Top rated',
 }
 
 interface LedgerHeaderProps {
   filters: FilterState
   categories: Category[]
   counts: { wantToTry: number; tried: number }
-  summary: {
-    averageRating: number | null
-    averageSpendPerPerson: number | null
-    thisMonthVisits: number
-  }
   onChange: (patch: Partial<FilterState>) => void
   onManage: () => void
   onOpenStats: () => void
@@ -27,20 +21,10 @@ interface LedgerHeaderProps {
 }
 
 /**
- * Two rows, not four. Row one is identity and the orthogonal filters (favourites,
- * search); row two is the only mutually-exclusive choice there is.
- * Sort and category live behind one chip, and the old Stats tab is the stamp line.
+ * Masthead, section switch, then the filters as a row of chips. Everything that used
+ * to hide behind the wordmark or a stamp line now has a labelled button of its own.
  */
-export function LedgerHeader({
-  filters,
-  categories,
-  counts,
-  summary,
-  onChange,
-  onManage,
-  onOpenStats,
-  onOpenFilters,
-}: LedgerHeaderProps) {
+export function LedgerHeader({ filters, categories, counts, onChange, onManage, onOpenStats, onOpenFilters }: LedgerHeaderProps) {
   const [searching, setSearching] = useState(false)
   const searchRef = useRef<HTMLInputElement>(null)
 
@@ -53,16 +37,6 @@ export function LedgerHeader({
     onChange({ search: '' })
   }
 
-  const activeCategory = categories.find((category) => category.id === filters.category_id) ?? null
-
-  const stamp = [
-    `${counts.wantToTry} to try`,
-    `${counts.tried} been`,
-    summary.averageRating != null ? `★${summary.averageRating.toFixed(1)}` : null,
-    summary.averageSpendPerPerson != null ? `${formatEuroAmount(summary.averageSpendPerPerson)} pp` : null,
-    summary.thisMonthVisits > 0 ? `${summary.thisMonthVisits} this month` : null,
-  ].filter(Boolean) as string[]
-
   return (
     <header
       className="glass"
@@ -70,207 +44,165 @@ export function LedgerHeader({
         position: 'sticky',
         top: 0,
         zIndex: 40,
-        padding: 'max(env(safe-area-inset-top), 0px) 0 0',
+        paddingTop: 'env(safe-area-inset-top)',
         borderBottom: '1px solid var(--border-subtle)',
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 16px 6px' }}>
-        <button
-          onClick={onManage}
-          className="wordmark"
-          aria-label="Settings and categories"
-          style={{
-            border: 'none',
-            background: 'none',
-            cursor: 'pointer',
-            fontSize: 30,
-            lineHeight: 1,
-            paddingBottom: 3,
-          }}
-        >
+      <div style={{ display: 'flex', alignItems: 'center', gap: 2, padding: '6px 8px 0 18px', minHeight: 52 }}>
+        <span className="wordmark" style={{ fontSize: 28, lineHeight: 1, flex: 1 }}>
           Tastebook
-        </button>
+        </span>
 
-        <div style={{ flex: 1 }} />
-
-        <IconButton
-          label="Search places and notes"
-          onClick={() => (searching ? closeSearch() : setSearching(true))}
-          active={searching}
-        >
-          <circle cx="11" cy="11" r="7.5" />
-          <path d="m21 21-4.4-4.4" />
+        <IconButton label="Search" active={searching} onClick={() => (searching ? closeSearch() : setSearching(true))}>
+          <circle cx="11" cy="11" r="7" />
+          <path d="m20 20-3.8-3.8" />
         </IconButton>
-
         <IconButton
           label="Only favourites"
-          onClick={() => onChange({ favoritesOnly: !filters.favoritesOnly })}
           active={filters.favoritesOnly}
           fill={filters.favoritesOnly}
+          onClick={() => onChange({ favoritesOnly: !filters.favoritesOnly })}
         >
-          <polygon points="12 3 14.9 9.1 21.5 10 16.7 14.6 17.9 21.1 12 18 6.1 21.1 7.3 14.6 2.5 10 9.1 9.1" />
+          <path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z" />
+        </IconButton>
+        <IconButton label="Stats" onClick={onOpenStats}>
+          <path d="M5 20V11M12 20V4M19 20v-6" />
+        </IconButton>
+        <IconButton label="Settings" onClick={onManage}>
+          <circle cx="12" cy="12" r="3" />
+          <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z" />
         </IconButton>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 16px 9px' }}>
-        {searching ? (
-          <>
-            <input
-              ref={searchRef}
-              value={filters.search}
-              onChange={(event) => onChange({ search: event.target.value })}
-              placeholder="Search every place and note…"
-              style={{
-                flex: 1,
-                minWidth: 0,
-                height: 34,
-                padding: '0 14px',
-                borderRadius: 'var(--radius-full)',
-                border: '1px solid var(--border-default)',
-                background: 'var(--bg-surface)',
-                fontSize: 14,
-                outline: 'none',
-              }}
-            />
-            <button
-              onClick={closeSearch}
-              className="label-caps"
-              style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: 10.5, color: 'var(--text-muted)' }}
-            >
-              Cancel
-            </button>
-          </>
-        ) : (
-          <>
-            <div
-              role="tablist"
-              aria-label="Status"
-              style={{
-                display: 'flex',
-                gap: 2,
-                padding: 2,
-                background: 'var(--bg-subtle)',
-                borderRadius: 'var(--radius-full)',
-                border: '1px solid var(--border-subtle)',
-              }}
-            >
-              {(
-                [
-                  { value: 'want_to_try', label: 'To try' },
-                  { value: 'tried', label: 'Been' },
-                ] as const
-              ).map((tab) => {
-                const active = filters.status === tab.value
-                return (
-                  <button
-                    key={tab.value}
-                    role="tab"
-                    aria-selected={active}
-                    onClick={() => onChange({ status: tab.value })}
-                    className="label-caps"
-                    style={{
-                      padding: '6px 15px 5px',
-                      borderRadius: 'var(--radius-full)',
-                      border: 'none',
-                      cursor: 'pointer',
-                      fontSize: 11,
-                      background: active ? 'var(--bg-surface)' : 'transparent',
-                      color: active ? 'var(--text-primary)' : 'var(--text-muted)',
-                      boxShadow: active ? 'var(--shadow-sm)' : 'none',
-                      transition: 'background 0.16s, color 0.16s',
-                    }}
-                  >
+      {searching ? (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 10px 12px 16px' }}>
+          <input
+            ref={searchRef}
+            value={filters.search}
+            onChange={(event) => onChange({ search: event.target.value })}
+            placeholder="Search places and notes"
+            aria-label="Search places and notes"
+            enterKeyHint="search"
+            style={{
+              flex: 1,
+              minWidth: 0,
+              height: 44,
+              padding: '0 16px',
+              borderRadius: 'var(--radius-full)',
+              border: '1px solid var(--border-default)',
+              background: 'var(--bg-elevated)',
+              fontSize: 16,
+              outline: 'none',
+            }}
+          />
+          <button
+            onClick={closeSearch}
+            style={{ height: 44, padding: '0 10px', border: 'none', background: 'none', fontSize: 15, fontWeight: 500, color: 'var(--accent-primary)' }}
+          >
+            Cancel
+          </button>
+        </div>
+      ) : (
+        <>
+          <div role="tablist" aria-label="Status" style={{ display: 'flex', gap: 22, padding: '4px 18px 0' }}>
+            {(
+              [
+                { value: 'want_to_try', label: 'To try', count: counts.wantToTry },
+                { value: 'tried', label: 'Been', count: counts.tried },
+              ] as const
+            ).map((tab) => {
+              const active = filters.status === tab.value
+              return (
+                <button
+                  key={tab.value}
+                  role="tab"
+                  aria-selected={active}
+                  onClick={() => onChange({ status: tab.value })}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'baseline',
+                    gap: 6,
+                    minHeight: 44,
+                    padding: '6px 0 8px',
+                    border: 'none',
+                    background: 'none',
+                    borderBottom: `2px solid ${active ? 'var(--text-primary)' : 'transparent'}`,
+                    color: active ? 'var(--text-primary)' : 'var(--text-muted)',
+                    transition: 'color 0.2s, border-color 0.2s',
+                  }}
+                >
+                  <span className="font-display" style={{ fontSize: 24, fontWeight: active ? 560 : 420, lineHeight: 1 }}>
                     {tab.label}
-                  </button>
-                )
-              })}
-            </div>
+                  </span>
+                  <span className="tabular" style={{ fontSize: 13, fontWeight: 500 }}>
+                    {tab.count}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
 
-            <div style={{ flex: 1 }} />
-
-            {activeCategory && (
-              <button
-                onClick={() => onChange({ category_id: null })}
-                className="font-stamp"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 5,
-                  padding: '4px 10px',
-                  borderRadius: 'var(--radius-full)',
-                  border: `1.5px solid ${activeCategory.color}`,
-                  background: withAlpha(activeCategory.color, 0.1),
-                  color: activeCategory.color,
-                  cursor: 'pointer',
-                  fontSize: 11,
-                  maxWidth: 130,
-                }}
-              >
-                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {activeCategory.name}
-                </span>
-                <span aria-hidden style={{ fontSize: 13, lineHeight: 1 }}>
-                  ×
-                </span>
-              </button>
-            )}
-
-            <button
-              onClick={onOpenFilters}
-              className="font-stamp"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 4,
-                border: 'none',
-                background: 'none',
-                cursor: 'pointer',
-                fontSize: 11.5,
-                color: 'var(--text-muted)',
-                padding: '4px 2px',
-              }}
-            >
-              {SORT_LABELS[filters.sort]}
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" aria-hidden>
-                <path d="m6 9 6 6 6-6" />
+          <div className="chip-row" style={{ padding: '10px 16px 12px' }}>
+            <button onClick={onOpenFilters} aria-label={`Sort: ${SORT_LABELS[filters.sort]}`} className="pressable" style={chipStyle(false)}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden>
+                <path d="M4 7h16M7 12h10M10 17h4" />
               </svg>
+              {SORT_LABELS[filters.sort]}
             </button>
-          </>
-        )}
-      </div>
-
-      <button
-        onClick={onOpenStats}
-        className="font-stamp"
-        style={{
-          display: 'block',
-          width: '100%',
-          textAlign: 'left',
-          padding: '7px 16px 8px',
-          border: 'none',
-          borderTop: '1px dashed var(--border-default)',
-          background: 'none',
-          cursor: 'pointer',
-          fontSize: 11,
-          color: 'var(--text-muted)',
-        }}
-      >
-        {stamp.join(' · ')}
-      </button>
+            {categories.map((category) => {
+              const active = filters.category_id === category.id
+              return (
+                <button
+                  key={category.id}
+                  onClick={() => onChange({ category_id: active ? null : category.id })}
+                  aria-pressed={active}
+                  className="pressable"
+                  style={chipStyle(active, category.color)}
+                >
+                  {category.name}
+                  {active && (
+                    <span aria-hidden style={{ fontSize: 15, lineHeight: 1, marginLeft: 2 }}>
+                      ×
+                    </span>
+                  )}
+                </button>
+              )
+            })}
+          </div>
+        </>
+      )}
     </header>
   )
+}
+
+function chipStyle(active: boolean, color?: string): React.CSSProperties {
+  return {
+    flex: 'none',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: 6,
+    height: 36,
+    padding: '0 14px',
+    borderRadius: 'var(--radius-full)',
+    border: `1px solid ${active && color ? color : 'var(--border-default)'}`,
+    background: active && color ? withAlpha(color, 0.14) : 'var(--bg-elevated)',
+    color: 'var(--text-primary)',
+    fontSize: 14,
+    fontWeight: active ? 600 : 500,
+    whiteSpace: 'nowrap',
+  }
 }
 
 function IconButton({
   label,
   onClick,
-  active,
+  active = false,
   fill = false,
   children,
 }: {
   label: string
   onClick: () => void
-  active: boolean
+  active?: boolean
   fill?: boolean
   children: React.ReactNode
 }) {
@@ -279,30 +211,19 @@ function IconButton({
       onClick={onClick}
       aria-label={label}
       aria-pressed={active}
+      className="pressable"
       style={{
-        width: 30,
-        height: 30,
+        width: 44,
+        height: 44,
         display: 'grid',
         placeItems: 'center',
         border: 'none',
         background: 'none',
-        cursor: 'pointer',
         borderRadius: 'var(--radius-full)',
-        color: active ? 'var(--accent-gold)' : 'var(--text-secondary)',
-        transition: 'color 0.15s',
+        color: active ? (fill ? 'var(--accent-gold)' : 'var(--accent-primary)') : 'var(--text-secondary)',
       }}
     >
-      <svg
-        width="17"
-        height="17"
-        viewBox="0 0 24 24"
-        fill={fill ? 'currentColor' : 'none'}
-        stroke="currentColor"
-        strokeWidth="2.1"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden
-      >
+      <svg width="21" height="21" viewBox="0 0 24 24" fill={fill ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
         {children}
       </svg>
     </button>

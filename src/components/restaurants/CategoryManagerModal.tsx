@@ -12,14 +12,14 @@ interface CategoryManagerModalProps {
   onClose: () => void
 }
 
-// Stored verbatim in the DB, so these stay literal hex — riso inks, legible on both
+// Stored verbatim in the DB, so these stay literal hex — warm inks, legible on both
 // the newsprint and the darkroom ground.
-const QUICK_COLORS = ['#2E52D8', '#D91E82', '#0E8F5C', '#B98600', '#D6343A', '#6C5CE0', '#128B84', '#DE6E1F']
+const QUICK_COLORS = ['#B0432A', '#4D6838', '#A8741A', '#2F5D73', '#8C3B5E', '#C0612B', '#5B4B8A', '#2E7D6B']
 const QUICK_ICONS = ['🍝', '🍣', '🥞', '🕯️', '🍔', '🍕', '🥢', '🐟', '🦞', '🌮', '🍷', '☕']
 
 const emptyDraft: CreateCategoryInput = {
   name: '',
-  color: '#2E52D8',
+  color: '#B0432A',
   icon: '',
 }
 
@@ -47,7 +47,7 @@ export function CategoryManagerModal({ categories, onCreate, onUpdate, onDelete,
     () => ({
       id: 'preview',
       name: draft.name || 'New category',
-      color: draft.color || '#2E52D8',
+      color: draft.color || '#B0432A',
       icon: draft.icon || undefined,
       user_id: '',
       created_at: '',
@@ -325,11 +325,11 @@ const fieldLabelStyle = {
 const inputStyle = {
   width: '100%',
   marginTop: 6,
-  padding: '11px 14px',
-  border: '1.5px solid var(--border-default)',
+  padding: '12px 14px',
+  border: '1px solid var(--border-default)',
   borderRadius: 'var(--radius-md)',
-  fontSize: 15,
-  background: 'var(--bg-base)',
+  fontSize: 16,
+  background: 'var(--bg-elevated)',
   color: 'var(--text-primary)',
   outline: 'none',
   fontFamily: 'var(--font-body)',
@@ -338,7 +338,7 @@ const inputStyle = {
 const linkButtonStyle = {
   border: 'none',
   background: 'transparent',
-  color: '#2E52D8',
+  color: '#B0432A',
   fontSize: 12,
   fontWeight: 600,
   cursor: 'pointer',
@@ -361,8 +361,8 @@ function primaryButtonStyle(disabled: boolean) {
     height: 46,
     borderRadius: 'var(--radius-lg)',
     border: 'none',
-    background: 'linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-primary-dark) 100%)',
-    color: '#fff',
+    background: 'var(--accent-primary)',
+    color: 'var(--on-accent)',
     fontSize: 15,
     fontWeight: 600,
     cursor: disabled ? 'not-allowed' : 'pointer',

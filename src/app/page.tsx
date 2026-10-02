@@ -26,7 +26,7 @@ import type { Restaurant, RestaurantVisit } from '@/types'
 // Leaflet touches `window` at module load — client-only
 const MapView = dynamic(() => import('@/components/restaurants/MapView').then((m) => m.MapView), {
   ssr: false,
-  loading: () => <SkeletonCard />,
+  loading: () => <div className="skeleton" style={{ height: '62svh', borderRadius: 'var(--radius-lg)' }} />,
 })
 
 export default function HomePage() {
@@ -79,23 +79,18 @@ export default function HomePage() {
   ]
 
   return (
-    <div className="paper" style={{ minHeight: '100svh', maxWidth: 640, margin: '0 auto', overflowX: 'hidden', width: '100%' }}>
+    <div className="paper" style={{ minHeight: '100svh', maxWidth: 720, margin: '0 auto', overflowX: 'hidden', width: '100%' }}>
       <LedgerHeader
         filters={filters}
         categories={categories}
         counts={{ wantToTry: stats.wantToTry, tried: stats.tried }}
-        summary={{
-          averageRating: overviewStats.averageRating,
-          averageSpendPerPerson: overviewStats.averageSpendPerPerson,
-          thisMonthVisits: overviewStats.thisMonthVisits,
-        }}
         onChange={updateFilters}
         onManage={() => setManageSheetOpen(true)}
         onOpenStats={() => setStatsOpen(true)}
         onOpenFilters={() => setFilterSheetOpen(true)}
       />
 
-      <main style={{ paddingBottom: 'calc(92px + env(safe-area-inset-bottom))' }}>
+      <main style={{ paddingBottom: 'calc(104px + env(safe-area-inset-bottom))' }}>
         {tab === 'map' ? (
           <div style={{ padding: '14px 16px' }}>
             <MapView
@@ -107,8 +102,8 @@ export default function HomePage() {
             />
           </div>
         ) : loading ? (
-          <div style={{ borderTop: '1px solid var(--border-subtle)' }}>
-            {Array.from({ length: 8 }).map((_, i) => (
+          <div className="card-grid" style={{ padding: '18px 16px 8px' }} aria-busy="true" aria-label="Loading places">
+            {Array.from({ length: 6 }).map((_, i) => (
               <SkeletonCard key={i} />
             ))}
           </div>
@@ -118,15 +113,15 @@ export default function HomePage() {
           <>
             {filters.sort === 'nearest' && locationError && (
               <p
-                className="font-stamp"
+                role="status"
                 style={{
-                  margin: '12px 16px 0',
-                  padding: '9px 13px',
+                  margin: '14px 16px 0',
+                  padding: '10px 14px',
                   borderRadius: 'var(--radius-md)',
-                  background: 'var(--danger-bg)',
-                  border: '1px solid var(--danger-border)',
-                  color: 'var(--danger)',
-                  fontSize: 11.5,
+                  background: 'var(--warn-bg)',
+                  color: 'var(--warn)',
+                  fontSize: 14,
+                  lineHeight: 1.4,
                 }}
               >
                 {locationError}
@@ -139,10 +134,6 @@ export default function HomePage() {
               onOpen={setDetailTargetId}
               onMarkTried={setTriedTargetId}
               onToggleFavorite={(restaurant) => favoriteRestaurant(restaurant.id, !restaurant.is_favorite)}
-              onDelete={async (restaurant) => {
-                if (!confirm(`Delete "${restaurant.name}"?`)) return
-                await removeRestaurant(restaurant.id)
-              }}
             />
           </>
         )}
@@ -162,8 +153,8 @@ export default function HomePage() {
       {statsOpen && (
         <Sheet onClose={() => setStatsOpen(false)}>
           <SheetBody style={{ padding: '8px 20px max(24px, env(safe-area-inset-bottom))' }}>
-            <h2 className="font-script" style={{ fontSize: 27, color: 'var(--text-primary)', padding: '2px 2px 14px' }}>
-              the year so far
+            <h2 className="font-script" style={{ fontSize: 30, color: 'var(--text-primary)', padding: '4px 2px 16px' }}>
+              The year so far
             </h2>
             <StatsView
               total={overviewStats.total}

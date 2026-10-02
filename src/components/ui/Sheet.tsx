@@ -12,9 +12,11 @@ interface SheetProps {
   panelStyle?: React.CSSProperties
   /** Skip entrance animations — used when swapping content between two sheets in place */
   animated?: boolean
+  /** Show the grab handle; off when the content draws its own over a hero image */
+  handle?: boolean
 }
 
-export function Sheet({ children, onClose, maxWidth = 560, dismissable = true, panelStyle, animated = true }: SheetProps) {
+export function Sheet({ children, onClose, maxWidth = 560, dismissable = true, panelStyle, animated = true, handle = true }: SheetProps) {
   const panelRef = useRef<HTMLDivElement>(null)
   const touchStartYRef = useRef<number | null>(null)
   const [dragY, setDragY] = useState(0)
@@ -67,7 +69,7 @@ export function Sheet({ children, onClose, maxWidth = 560, dismissable = true, p
         position: 'fixed',
         inset: 0,
         zIndex: 120,
-        background: 'rgba(0,0,0,0.5)',
+        background: 'rgba(24, 16, 10, 0.48)',
         display: 'flex',
         alignItems: 'flex-end',
         justifyContent: 'center',
@@ -92,13 +94,15 @@ export function Sheet({ children, onClose, maxWidth = 560, dismissable = true, p
           flexDirection: 'column',
           boxShadow: 'var(--shadow-xl)',
           transform: `translateY(${dragY}px)`,
-          transition: isDragging ? 'none' : 'transform 0.22s ease',
+          transition: isDragging ? 'none' : 'transform 0.28s var(--ease-out)',
           ...panelStyle,
         }}
       >
-        <div style={{ padding: '12px 0 4px', display: 'flex', justifyContent: 'center', flexShrink: 0 }}>
-          <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--border-default)' }} />
-        </div>
+        {handle && (
+          <div style={{ padding: '10px 0 6px', display: 'flex', justifyContent: 'center', flexShrink: 0 }}>
+            <div style={{ width: 38, height: 5, borderRadius: 3, background: 'var(--border-strong)' }} />
+          </div>
+        )}
         {children}
       </div>
     </div>
@@ -112,33 +116,35 @@ export function SheetHeader({ title, onClose }: { title: string; onClose: () => 
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '10px 24px 14px',
+        padding: '6px 14px 12px 22px',
         borderBottom: '1px solid var(--border-subtle)',
         flexShrink: 0,
       }}
     >
-      <h2 className="font-display" style={{ fontSize: 22, fontWeight: 500, color: 'var(--text-primary)' }}>
+      <h2 className="font-display" style={{ fontSize: 24, fontWeight: 520, color: 'var(--text-primary)' }}>
         {title}
       </h2>
       <button
         onClick={onClose}
         aria-label="Close"
         style={{
-          width: 32,
-          height: 32,
+          width: 44,
+          height: 44,
           borderRadius: 'var(--radius-full)',
-          border: '1px solid var(--border-default)',
-          background: 'var(--bg-subtle)',
+          border: 'none',
+          background: 'transparent',
           cursor: 'pointer',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           color: 'var(--text-secondary)',
-          fontSize: 18,
-          lineHeight: 1,
         }}
       >
-        ×
+        <span style={{ width: 32, height: 32, display: 'grid', placeItems: 'center', borderRadius: 'var(--radius-full)', background: 'var(--bg-subtle)' }}>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden>
+            <path d="M6 6l12 12M18 6 6 18" />
+          </svg>
+        </span>
       </button>
     </div>
   )
@@ -166,8 +172,8 @@ export function SheetFooter({ children }: { children: React.ReactNode }) {
   return (
     <div
       style={{
-        padding: '14px 24px',
-        paddingBottom: 'max(16px, env(safe-area-inset-bottom))',
+        padding: '12px 20px',
+        paddingBottom: 'max(14px, env(safe-area-inset-bottom))',
         borderTop: '1px solid var(--border-subtle)',
         display: 'flex',
         gap: 10,

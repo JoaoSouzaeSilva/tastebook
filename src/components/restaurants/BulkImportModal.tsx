@@ -208,10 +208,10 @@ export function BulkImportModal({ categories, existingRestaurants, onImport, onC
     width: '100%',
     minHeight: 180,
     padding: '14px 16px',
-    border: '1.5px solid var(--border-default)',
+    border: '1px solid var(--border-default)',
     borderRadius: 'var(--radius-lg)',
-    fontSize: 15,
-    background: 'var(--bg-base)',
+    fontSize: 16,
+    background: 'var(--bg-elevated)',
     color: 'var(--text-primary)',
     outline: 'none',
     transition: 'border-color 0.2s',
@@ -365,7 +365,7 @@ export function BulkImportModal({ categories, existingRestaurants, onImport, onC
                     style={{
                       width: `${progress.total === 0 ? 0 : (progress.completed / progress.total) * 100}%`,
                       height: '100%',
-                      background: 'linear-gradient(90deg, var(--accent-primary) 0%, var(--accent-gold) 100%)',
+                      background: 'var(--accent-primary)',
                       transition: 'width 0.2s ease',
                     }}
                   />
@@ -454,8 +454,8 @@ export function BulkImportModal({ categories, existingRestaurants, onImport, onC
                   height: 48,
                   borderRadius: 'var(--radius-lg)',
                   border: 'none',
-                  background: 'linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-primary-dark) 100%)',
-                  color: '#fff',
+                  background: 'var(--accent-primary)',
+                  color: 'var(--on-accent)',
                   fontSize: 15,
                   fontWeight: 600,
                   cursor: isImporting || parsedLines.length === 0 ? 'not-allowed' : 'pointer',
