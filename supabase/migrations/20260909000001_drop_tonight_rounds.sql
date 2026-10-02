@@ -1,5 +1,5 @@
 -- Removes the "where tonight?" live-round feature. Safe to run whether or not the
--- 20260804_001_add_tonight_rounds migration was ever applied.
+-- (since deleted) 20260804_001_add_tonight_rounds migration was ever applied.
 
 do $$
 begin
