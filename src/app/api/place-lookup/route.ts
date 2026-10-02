@@ -1,4 +1,9 @@
 import { NextRequest } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
+
+// Cover photos live in the same public bucket as visit photos, under covers/.
+const PHOTOS_BUCKET = 'restaurant-review-photos'
+const COVER_CONTENT_TYPES: Record<string, string> = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' }
 
 const PRICE_MAP: Record<string, string> = {
   PRICE_LEVEL_INEXPENSIVE: '€',
@@ -108,15 +113,13 @@ export async function POST(request: NextRequest) {
     return Response.json({ error: `"${placeName}" not found on Google Maps` }, { status: 404 })
   }
 
-  // Resolve photo to CDN URL — keeps API key server-side
+  // Copy the photo into our own Storage. The googleusercontent URL the media
+  // endpoint redirects to expires after a while, which is how most of the older
+  // covers went blank. The API key stays server-side either way.
   let photoUrl: string | undefined
   if (place.photos?.[0]?.name) {
     try {
-      const photoRes = await fetch(
-        `https://places.googleapis.com/v1/${place.photos[0].name}/media?maxWidthPx=800&key=${apiKey}`,
-        { redirect: 'follow' }
-      )
-      photoUrl = photoRes.url
+      photoUrl = await persistCoverPhoto(place.photos[0].name as string, place.id as string, apiKey)
     } catch {
       // photo is optional
     }
@@ -134,4 +137,25 @@ export async function POST(request: NextRequest) {
     primary_type: place.primaryType as string | undefined,
     types: Array.isArray(place.types) ? place.types : undefined,
   })
+}
+
+async function persistCoverPhoto(photoName: string, placeId: string, apiKey: string): Promise<string | undefined> {
+  const photoRes = await fetch(`https://places.googleapis.com/v1/${photoName}/media?maxWidthPx=1200&key=${apiKey}`, {
+    redirect: 'follow',
+  })
+  if (!photoRes.ok) return undefined
+
+  const contentType = (photoRes.headers.get('content-type') ?? '').split(';')[0].trim()
+  const extension = COVER_CONTENT_TYPES[contentType]
+  // Unexpected format: fall back to the (temporary) CDN URL rather than nothing
+  if (!extension) return photoRes.url
+
+  const supabase = await createClient()
+  const path = `covers/${placeId}-${Date.now()}.${extension}`
+  const { error } = await supabase.storage
+    .from(PHOTOS_BUCKET)
+    .upload(path, await photoRes.arrayBuffer(), { contentType, cacheControl: '31536000', upsert: false })
+  if (error) return photoRes.url
+
+  return supabase.storage.from(PHOTOS_BUCKET).getPublicUrl(path).data.publicUrl
 }

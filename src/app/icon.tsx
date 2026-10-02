@@ -11,8 +11,8 @@ export default function Icon() {
           width: 32,
           height: 32,
           borderRadius: 8,
-          // Two pens, two inks — the same blue/pink pairing the list is written in
-          background: 'linear-gradient(135deg, #1B3FB8 0%, #C4126D 100%)',
+          // The app's single accent, terracotta
+          background: '#B0432A',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',

@@ -1,105 +1,100 @@
 @import "tailwindcss";
 
 /*
- * Tastebook — risograph inks on newsprint.
+ * Tastebook — a food magazine you keep together.
  *
- * Type is deliberately all iOS-resident: both users are on iPhone, so the system
- * font library is the design system. Nothing downloads, nothing silently falls back.
- *   script  → Snell Roundhand    (the hand-lettered wordmark and section heads)
- *   display → Futura             (uppercase labels, buttons, sheet titles)
- *   body    → SF Pro             (names, notes, anything read as content)
- *   stamp   → American Typewriter (meta lines, counts, anything with digits)
+ * Two families, both self-hosted (see app/fonts): nothing is fetched from Google
+ * at build or run time.
+ *   display → Fraunces  (place names, titles, the wordmark; italic for section heads)
+ *   body    → Geist     (everything else; tabular figures wherever digits line up)
+ *
+ * One accent (terracotta) for actions. Olive marks "been", ochre is only for stars.
  */
 :root {
-  --font-script: "Snell Roundhand", "Bradley Hand", "Brush Script MT", cursive;
-  --font-display: Futura, "Avenir Next Condensed", "Avenir Next", "Helvetica Neue", system-ui, sans-serif;
-  --font-body: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
-  --font-stamp: "American Typewriter", "Courier New", ui-monospace, monospace;
+  --font-display: var(--font-fraunces), "Iowan Old Style", Georgia, serif;
+  --font-body: var(--font-geist), -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  /* Legacy role names, kept so every component picks up the new type */
+  --font-script: var(--font-display);
+  --font-stamp: var(--font-body);
 
-  --bg-base: #E8E6DF;
-  --bg-surface: #F3F1EB;
-  --bg-elevated: #F8F7F2;
-  --bg-subtle: #DCD9D0;
-  --text-primary: #14181F;
-  --text-secondary: #4A4E57;
-  --text-muted: #6E6A62;
-  --text-inverse: #F3F1EB;
+  --bg-base: #F5F1EA;
+  --bg-surface: #FFFCF7;
+  --bg-elevated: #FFFFFF;
+  --bg-subtle: #ECE5DA;
+  --text-primary: #1E1915;
+  --text-secondary: #564C44;
+  --text-muted: #776B61;
+  --text-inverse: #FFFCF7;
 
-  /* Federal blue replaces the old terracotta as the single accent */
-  --accent-primary: #1B3FB8;
-  --accent-primary-light: #DEE3F7;
-  --accent-primary-dark: #122D8A;
-  --accent-secondary: #007546;
-  --accent-secondary-light: #DCEDE4;
-  --accent-gold: #9A6A00;
-  --accent-gold-light: #F7EBCB;
+  --accent-primary: #B0432A;
+  --accent-primary-light: #F5E2DA;
+  --accent-primary-dark: #8A321E;
+  --on-accent: #FFF8F0;
+  --accent-secondary: #4D6838;
+  --accent-secondary-light: #E4EADA;
+  --accent-gold: #A8741A;
+  --accent-gold-light: #F4E8D0;
 
-  /* Risograph plates — used by the wordmark's mis-registration effect. */
-  --riso-blue: #1B3FB8;
-  --riso-pink: #C4126D;
+  --danger: #A8261F;
+  --danger-bg: #F6DFDC;
+  --danger-border: #E5B4AE;
+  --warn: #87580E;
+  --warn-bg: #F4E7CC;
 
-  /* Semantic, kept separate from the accent */
-  --danger: #B3161C;
-  --danger-bg: #F5DCDC;
-  --danger-border: #E0AEB0;
-  --warn: #8A5A00;
-  --warn-bg: #F5E7C8;
+  --border-subtle: rgba(54, 38, 26, 0.08);
+  --border-default: rgba(54, 38, 26, 0.15);
+  --border-strong: rgba(54, 38, 26, 0.28);
 
-  --border-subtle: rgba(20, 24, 31, 0.08);
-  --border-default: rgba(20, 24, 31, 0.15);
-  --border-strong: rgba(20, 24, 31, 0.28);
-  --paper-dot: rgba(20, 24, 31, 0.16);
+  /* Shadows carry the warm ink hue rather than neutral black */
+  --shadow-sm: 0 1px 2px rgba(54, 38, 26, 0.06);
+  --shadow-md: 0 6px 16px -4px rgba(54, 38, 26, 0.12), 0 2px 4px rgba(54, 38, 26, 0.05);
+  --shadow-lg: 0 14px 32px -8px rgba(54, 38, 26, 0.18), 0 4px 8px rgba(54, 38, 26, 0.05);
+  --shadow-xl: 0 -10px 40px rgba(54, 38, 26, 0.16);
+  --shadow-accent: 0 8px 20px -6px rgba(176, 67, 42, 0.55);
 
-  --shadow-sm: 0 1px 2px rgba(20, 24, 31, 0.07);
-  --shadow-md: 0 4px 12px rgba(20, 24, 31, 0.09), 0 2px 4px rgba(20, 24, 31, 0.05);
-  --shadow-lg: 0 8px 24px rgba(20, 24, 31, 0.11), 0 4px 8px rgba(20, 24, 31, 0.06);
-  --shadow-xl: 0 20px 48px rgba(20, 24, 31, 0.16);
-  --shadow-accent: 0 4px 14px rgba(27, 63, 184, 0.28);
-
-  --radius-sm: 6px;
+  --radius-sm: 8px;
   --radius-md: 12px;
-  --radius-lg: 18px;
-  --radius-xl: 26px;
+  --radius-lg: 16px;
+  --radius-xl: 28px;
   --radius-full: 9999px;
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 [data-theme="dark"] {
-  --bg-base: #10131A;
-  --bg-surface: #1A1E27;
-  --bg-elevated: #222732;
-  --bg-subtle: #262C38;
-  --text-primary: #E9E6DD;
-  --text-secondary: #B3AFA4;
-  --text-muted: #8A8779;
-  --text-inverse: #14181F;
+  --bg-base: #15110E;
+  --bg-surface: #1F1A16;
+  --bg-elevated: #28221D;
+  --bg-subtle: #2E2721;
+  --text-primary: #F3EDE5;
+  --text-secondary: #C6BBAE;
+  --text-muted: #9B8F83;
+  --text-inverse: #15110E;
 
-  --accent-primary: #7C97FF;
-  --accent-primary-light: #1B2240;
-  --accent-primary-dark: #A8BAFF;
-  --accent-secondary: #35C98A;
-  --accent-secondary-light: #0E2419;
-  --accent-gold: #FFD34E;
-  --accent-gold-light: #2A2208;
+  --accent-primary: #E5805F;
+  --accent-primary-light: #3A231A;
+  --accent-primary-dark: #F2A588;
+  --on-accent: #1E120C;
+  --accent-secondary: #A3BD88;
+  --accent-secondary-light: #232B1B;
+  --accent-gold: #E6B85C;
+  --accent-gold-light: #2D2412;
 
-  --riso-blue: #7C97FF;
-  --riso-pink: #FF6FB4;
+  --danger: #F08C80;
+  --danger-bg: #351A17;
+  --danger-border: #5E2C27;
+  --warn: #EDC173;
+  --warn-bg: #2E2410;
 
-  --danger: #FF8080;
-  --danger-bg: #2E1618;
-  --danger-border: #5C2A2C;
-  --warn: #FFC96B;
-  --warn-bg: #2A2008;
+  --border-subtle: rgba(243, 237, 229, 0.07);
+  --border-default: rgba(243, 237, 229, 0.14);
+  --border-strong: rgba(243, 237, 229, 0.26);
 
-  --border-subtle: rgba(233, 230, 221, 0.07);
-  --border-default: rgba(233, 230, 221, 0.14);
-  --border-strong: rgba(233, 230, 221, 0.26);
-  --paper-dot: rgba(233, 230, 221, 0.13);
-
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.35);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.45);
-  --shadow-xl: 0 20px 48px rgba(0, 0, 0, 0.55);
-  --shadow-accent: 0 4px 14px rgba(0, 0, 0, 0.45);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 6px 16px -4px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 14px 32px -8px rgba(0, 0, 0, 0.6);
+  --shadow-xl: 0 -10px 40px rgba(0, 0, 0, 0.5);
+  --shadow-accent: 0 8px 20px -6px rgba(229, 128, 95, 0.4);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -108,73 +103,84 @@ html {
   background-color: var(--bg-base);
   color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
 }
 body { min-height: 100svh; background-color: var(--bg-base); overflow-x: hidden; }
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border-default); border-radius: 2px; }
 ::selection { background: var(--accent-primary-light); color: var(--accent-primary-dark); }
-:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 2px; border-radius: 4px; }
+:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 2px; border-radius: 6px; }
+button { font-family: inherit; color: inherit; }
+input[type="checkbox"], input[type="radio"], progress { accent-color: var(--accent-primary); }
+button:not(:disabled) { cursor: pointer; }
 
 /* ── Type roles ─────────────────────────────────────────────── */
-.font-script {
-  font-family: var(--font-script);
-  font-weight: 400;
-  letter-spacing: 0.01em;
+.font-display {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+  letter-spacing: -0.015em;
 }
-.font-display { font-family: var(--font-display); }
+/* Section heads: lowercase italics, like a magazine standfirst */
+.font-script {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 450;
+  font-optical-sizing: auto;
+  letter-spacing: -0.01em;
+}
 .font-stamp {
-  font-family: var(--font-stamp);
+  font-family: var(--font-body);
   font-variant-numeric: tabular-nums;
 }
+.tabular { font-variant-numeric: tabular-nums; }
+/* Small labels: sentence case and medium weight rather than shouting caps */
 .label-caps {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
+  font-weight: 600;
+  letter-spacing: 0.005em;
+}
+.eyebrow {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  letter-spacing: 0.11em;
+  color: var(--text-muted);
 }
 
-/* Riso mis-registration: a pink plate printed a hair off behind the blue one. */
 .wordmark {
-  font-family: var(--font-script);
-  color: var(--riso-blue);
-  text-shadow: 1.5px 1.5px 0 color-mix(in srgb, var(--riso-pink) 42%, transparent);
+  font-family: var(--font-display);
+  font-weight: 640;
+  font-style: italic;
+  letter-spacing: -0.03em;
+  color: var(--accent-primary);
 }
 
-/* ── Notebook paper ─────────────────────────────────────────── */
-.paper {
-  background-color: var(--bg-base);
-  background-image: radial-gradient(var(--paper-dot) 0.9px, transparent 0.9px);
-  background-size: 17px 17px;
-  background-position: 8px 8px;
-}
+.paper { background-color: var(--bg-base); }
 
+.glass-solid { background: color-mix(in srgb, var(--bg-base) 95%, transparent) !important; }
 .glass {
-  background: rgba(232, 230, 223, 0.86);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+  background: color-mix(in srgb, var(--bg-base) 84%, transparent);
+  backdrop-filter: saturate(1.4) blur(20px);
+  -webkit-backdrop-filter: saturate(1.4) blur(20px);
 }
-[data-theme="dark"] .glass { background: rgba(16, 19, 26, 0.86); }
 
-/* ── Ledger rows ────────────────────────────────────────────── */
-/* Row content slides over the action tray beneath it. */
-.ledger-row {
-  transition: transform 0.24s cubic-bezier(0.32, 0.72, 0, 1);
-  touch-action: pan-y;
-}
-.ledger-row.is-dragging { transition: none; }
+/* Press feedback for anything tappable */
+.pressable { transition: transform 0.18s var(--ease-out), opacity 0.18s var(--ease-out), background-color 0.18s; }
+.pressable:active { transform: scale(0.97); }
 
-/* The tick draws itself on, like a pen stroke. */
-.tick path {
-  fill: none;
-  stroke: var(--accent-secondary);
-  stroke-width: 2.6;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-dasharray: 22;
-  stroke-dashoffset: 22;
-  transition: stroke-dashoffset 0.3s cubic-bezier(0.6, 0.05, 0.2, 1);
+/* ── Place cards ────────────────────────────────────────────── */
+.place-photo { position: relative; overflow: hidden; background: var(--bg-subtle); isolation: isolate; }
+.place-photo img {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+  opacity: 0; transition: opacity 0.35s var(--ease-out);
 }
-.tick.is-checked path { stroke-dashoffset: 0; }
+.place-photo img.is-loaded { opacity: 1; }
+.card-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px 12px; }
+@media (min-width: 560px) { .card-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.chip-row { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
+.chip-row::-webkit-scrollbar { display: none; }
 
 /* ── Animation ──────────────────────────────────────────────── */
 @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }

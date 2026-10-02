@@ -178,10 +178,10 @@ export default function AuthPage() {
             type="submit"
             disabled={loading}
             style={{
-              width: '100%', padding: '13px',
-              borderRadius: 'var(--radius-md)',
-              background: loading ? 'var(--border-default)' : 'linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-primary-dark) 100%)',
-              border: 'none', color: '#fff',
+              width: '100%', height: 50,
+              borderRadius: 'var(--radius-full)',
+              background: loading ? 'var(--border-default)' : 'var(--accent-primary)',
+              border: 'none', color: 'var(--on-accent)',
               fontSize: 15, fontWeight: 500,
               cursor: loading ? 'not-allowed' : 'pointer',
               fontFamily: 'var(--font-body)',

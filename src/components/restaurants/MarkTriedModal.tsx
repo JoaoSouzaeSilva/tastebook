@@ -82,10 +82,10 @@ export function MarkTriedModal({ onSave, onClose, isRepeatVisit = false, initial
   const inputStyle = {
     width: '100%',
     padding: '12px 14px',
-    border: '1.5px solid var(--border-default)',
+    border: '1px solid var(--border-default)',
     borderRadius: 'var(--radius-md)',
-    fontSize: 15,
-    background: 'var(--bg-base)',
+    fontSize: 16,
+    background: 'var(--bg-elevated)',
     color: 'var(--text-primary)',
     outline: 'none',
     fontFamily: 'var(--font-body)',
@@ -94,10 +94,11 @@ export function MarkTriedModal({ onSave, onClose, isRepeatVisit = false, initial
   const choiceButtonStyle = (selected: boolean, positive: boolean) => ({
     flex: 1,
     minWidth: 0,
-    padding: '12px 14px',
-    borderRadius: 'var(--radius-md)',
+    minHeight: 46,
+    padding: '10px 12px',
+    borderRadius: 'var(--radius-full)',
     border: `1.5px solid ${selected ? (positive ? 'var(--accent-secondary)' : 'var(--warn)') : 'var(--border-default)'}`,
-    background: selected ? (positive ? 'var(--accent-secondary-light)' : 'var(--warn-bg)') : 'transparent',
+    background: selected ? (positive ? 'var(--accent-secondary-light)' : 'var(--warn-bg)') : 'var(--bg-elevated)',
     color: selected ? (positive ? 'var(--accent-secondary)' : 'var(--warn)') : 'var(--text-secondary)',
     fontSize: 14,
     fontWeight: 600,
@@ -118,25 +119,23 @@ export function MarkTriedModal({ onSave, onClose, isRepeatVisit = false, initial
   return (
     <Sheet onClose={onClose} maxWidth={480} dismissable={!saving}>
       <SheetBody style={{ padding: '12px 24px 24px' }}>
-        {/* Celebration header */}
-        <div style={{ textAlign: 'center', marginBottom: 28 }}>
-          <div style={{ fontSize: 48, marginBottom: 12 }}>🎉</div>
-          <h2 className="font-display" style={{ fontSize: 24, fontWeight: 500, color: 'var(--text-primary)', marginBottom: 6 }}>
-            {initialVisit ? 'Edit visit' : isRepeatVisit ? 'Log this visit' : 'You tried it!'}
+        <div style={{ textAlign: 'center', margin: '4px 0 22px' }}>
+          <h2 className="font-display" style={{ fontSize: 30, fontWeight: 520, color: 'var(--text-primary)', lineHeight: 1.1 }}>
+            {initialVisit ? 'Edit visit' : isRepeatVisit ? 'Another visit' : 'How was it?'}
           </h2>
         </div>
 
         {/* Rating */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, marginBottom: 24 }}>
           <StarRating value={rating} onChange={setRating} size="lg" />
-          <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
+          <span className="font-script" style={{ fontSize: 17, color: rating ? 'var(--text-primary)' : 'var(--text-muted)' }}>
             {getRatingLabel(rating)}
           </span>
         </div>
 
-        <div style={{ marginBottom: 24, padding: '16px', borderRadius: 'var(--radius-lg)', background: 'var(--bg-base)', border: '1px solid var(--border-subtle)' }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 14 }}>
-            Quick Verdict
+        <div style={{ marginBottom: 24, padding: '16px', borderRadius: 'var(--radius-lg)', background: 'var(--bg-base)' }}>
+          <div className="eyebrow" style={{ marginBottom: 14 }}>
+            Quick verdict
           </div>
           <div style={{ display: 'grid', gap: 14 }}>
             <div>
@@ -174,7 +173,7 @@ export function MarkTriedModal({ onSave, onClose, isRepeatVisit = false, initial
               onChange={(e) => setPartySize(e.target.value)}
               placeholder="2"
               style={inputStyle}
-              onFocus={(e) => (e.target.style.borderColor = 'var(--accent-secondary)')}
+              onFocus={(e) => (e.target.style.borderColor = 'var(--accent-primary)')}
               onBlur={(e) => (e.target.style.borderColor = 'var(--border-default)')}
             />
           </div>
@@ -191,7 +190,7 @@ export function MarkTriedModal({ onSave, onClose, isRepeatVisit = false, initial
               onChange={(e) => setTotalPaid(e.target.value)}
               placeholder="48.00"
               style={inputStyle}
-              onFocus={(e) => (e.target.style.borderColor = 'var(--accent-secondary)')}
+              onFocus={(e) => (e.target.style.borderColor = 'var(--accent-primary)')}
               onBlur={(e) => (e.target.style.borderColor = 'var(--border-default)')}
             />
           </div>
@@ -206,38 +205,36 @@ export function MarkTriedModal({ onSave, onClose, isRepeatVisit = false, initial
             value={dateVisited}
             onChange={(e) => setDateVisited(e.target.value)}
             style={inputStyle}
-            onFocus={(e) => (e.target.style.borderColor = 'var(--accent-secondary)')}
+            onFocus={(e) => (e.target.style.borderColor = 'var(--accent-primary)')}
             onBlur={(e) => (e.target.style.borderColor = 'var(--border-default)')}
           />
         </div>
 
         {pricePerPerson !== null && (
-          <div style={{ marginBottom: 24, padding: '12px 14px', borderRadius: 'var(--radius-md)', background: 'var(--accent-secondary-light)', color: 'var(--accent-secondary)' }}>
-            <div style={{ fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 4 }}>
-              Average spend
-            </div>
-            <div style={{ fontSize: 18, fontWeight: 600 }}>
-              {formatEuroAmount(pricePerPerson)} per person
-            </div>
-          </div>
+          <p style={{ margin: '-6px 0 22px', fontSize: 15, color: 'var(--text-secondary)' }}>
+            That&rsquo;s <strong className="tabular" style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{formatEuroAmount(pricePerPerson)}</strong> per person
+          </p>
         )}
 
-        {/* Notes */}
         <div style={{ marginBottom: 24 }}>
+          <label htmlFor="visit-notes" style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8 }}>
+            Notes
+          </label>
           <textarea
+            id="visit-notes"
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            placeholder="How was it?"
+            placeholder="What did you order? Anything to remember?"
             style={{
               width: '100%', padding: '12px 14px',
-              border: '1.5px solid var(--border-default)',
+              border: '1px solid var(--border-default)',
               borderRadius: 'var(--radius-md)',
-              fontSize: 15, background: 'var(--bg-base)',
+              fontSize: 16, background: 'var(--bg-elevated)',
               color: 'var(--text-primary)',
               outline: 'none', minHeight: 80, resize: 'none',
               fontFamily: 'var(--font-body)', lineHeight: 1.5,
             }}
-            onFocus={(e) => (e.target.style.borderColor = 'var(--accent-secondary)')}
+            onFocus={(e) => (e.target.style.borderColor = 'var(--accent-primary)')}
             onBlur={(e) => (e.target.style.borderColor = 'var(--border-default)')}
           />
         </div>
@@ -266,13 +263,36 @@ export function MarkTriedModal({ onSave, onClose, isRepeatVisit = false, initial
               ))}
             </div>
           )}
-          <input
-            type="file"
-            accept="image/*"
-            multiple
-            onChange={(e) => setReviewPhotos(Array.from(e.target.files ?? []))}
-            style={{ display: 'block', width: '100%', fontSize: 13, color: 'var(--text-secondary)' }}
-          />
+          <label
+            className="pressable"
+            style={{
+              position: 'relative',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+              minHeight: 52,
+              borderRadius: 'var(--radius-md)',
+              border: '1.5px dashed var(--border-strong)',
+              color: 'var(--text-secondary)',
+              fontSize: 15,
+              fontWeight: 500,
+              cursor: 'pointer',
+            }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M4 8h3l2-3h6l2 3h3v11H4z" />
+              <circle cx="12" cy="13" r="3.5" />
+            </svg>
+            {reviewPhotos.length > 0 ? `${reviewPhotos.length} photo${reviewPhotos.length === 1 ? '' : 's'} chosen` : 'Add photos'}
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={(e) => setReviewPhotos(Array.from(e.target.files ?? []))}
+              style={{ position: 'absolute', width: 1, height: 1, opacity: 0, overflow: 'hidden' }}
+            />
+          </label>
           {reviewPhotos.length > 0 && (
             <div style={{ marginTop: 8, display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
               {reviewPhotos.map((file) => (
@@ -305,9 +325,9 @@ export function MarkTriedModal({ onSave, onClose, isRepeatVisit = false, initial
 
       <SheetFooter>
           <button onClick={onClose} style={{
-            flex: 1, padding: '13px',
-            borderRadius: 'var(--radius-md)',
-            border: '1.5px solid var(--border-default)',
+            flex: 1, height: 50,
+            borderRadius: 'var(--radius-full)',
+            border: '1px solid var(--border-default)',
             background: 'transparent', color: 'var(--text-secondary)',
             fontSize: 15, fontWeight: 500, cursor: 'pointer',
             fontFamily: 'var(--font-body)',
@@ -315,17 +335,17 @@ export function MarkTriedModal({ onSave, onClose, isRepeatVisit = false, initial
             {initialVisit ? 'Cancel' : 'Skip'}
           </button>
           <button onClick={handleSave} disabled={saving} style={{
-            flex: 2, padding: '13px',
-            borderRadius: 'var(--radius-md)',
-            background: saving ? 'var(--border-default)' : 'var(--accent-secondary)',
-            border: 'none', color: '#fff',
-            fontSize: 15, fontWeight: 500,
+            flex: 2, height: 50,
+            borderRadius: 'var(--radius-full)',
+            background: saving ? 'var(--border-default)' : 'var(--accent-primary)',
+            border: 'none', color: 'var(--on-accent)',
+            fontSize: 16, fontWeight: 600,
             cursor: saving ? 'not-allowed' : 'pointer',
             fontFamily: 'var(--font-body)',
-            boxShadow: saving ? 'none' : '0 4px 12px rgba(0, 117, 70, 0.3)',
+            boxShadow: saving ? 'none' : 'var(--shadow-accent)',
             transition: 'all 0.2s',
           }}>
-            {saving ? 'Saving…' : initialVisit ? 'Save visit' : 'Save review'}
+            {saving ? 'Saving…' : 'Save visit'}
           </button>
       </SheetFooter>
     </Sheet>

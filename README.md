@@ -48,6 +48,22 @@ To change the schema:
 Do **not** run schema changes by hand in the SQL editor — they won't be recorded and
 the history drifts.
 
+## Cover photos
+
+New places get their cover photo copied into Supabase Storage
+(`restaurant-review-photos/covers/`) by `/api/place-lookup`. Older rows stored the
+googleusercontent URL that Google's photo endpoint redirects to, and those expire.
+To move existing covers into Storage (dry run first, then `--apply`):
+
+```bash
+node --env-file=.env.local scripts/backfill-cover-photos.mjs
+node --env-file=.env.local scripts/backfill-cover-photos.mjs --apply
+```
+
+Needs `SUPABASE_SERVICE_ROLE_KEY` and `GOOGLE_MAPS_API_KEY` in `.env.local`. It skips
+rows already in Storage, so it is safe to re-run. Until it has run, cards with an
+expired photo fall back to a visit photo, then to a tile in the category colour.
+
 ## Deploying
 
 Tastebook is a standard Next.js app with server routes and a proxy (middleware), so

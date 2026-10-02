@@ -17,26 +17,26 @@ const iconStroke = {
 } as const
 
 /**
- * Three items, down from five. Stats became the header's stamp line, and Manage was
- * never navigation — it lives behind the wordmark now.
+ * Three items: the two views and the one thing you do most. Stats and settings have
+ * labelled buttons in the masthead.
  */
 export function BottomNav({ tab, onTabChange, onAdd }: BottomNavProps) {
   return (
     <nav
-      className="glass"
+      className="glass glass-solid"
       style={{
         position: 'fixed',
         bottom: 0,
         left: '50%',
         transform: 'translateX(-50%)',
         width: '100%',
-        maxWidth: 640,
+        maxWidth: 720,
         zIndex: 60,
         borderTop: '1px solid var(--border-subtle)',
         paddingBottom: 'env(safe-area-inset-bottom)',
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', padding: '0 30px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', padding: '0 24px' }}>
         <NavButton active={tab === 'list'} label="List" onClick={() => onTabChange('list')}>
           <path d="M4 6h16M4 12h16M4 18h11" />
         </NavButton>
@@ -44,22 +44,23 @@ export function BottomNav({ tab, onTabChange, onAdd }: BottomNavProps) {
         <button
           onClick={onAdd}
           aria-label="Add a place"
+          className="pressable"
           style={{
             flex: 'none',
-            width: 50,
-            height: 50,
-            marginTop: -14,
+            width: 56,
+            height: 56,
+            marginTop: -18,
             borderRadius: 'var(--radius-full)',
             border: 'none',
             background: 'var(--accent-primary)',
-            color: '#fff',
+            color: 'var(--on-accent)',
             cursor: 'pointer',
             display: 'grid',
             placeItems: 'center',
             boxShadow: 'var(--shadow-accent)',
           }}
         >
-          <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden>
             <line x1="12" y1="5" x2="12" y2="19" />
             <line x1="5" y1="12" x2="19" y2="12" />
           </svg>
@@ -89,23 +90,24 @@ function NavButton({
     <button
       onClick={onClick}
       aria-current={active ? 'page' : undefined}
-      className="label-caps"
+      className="pressable"
       style={{
         flex: 1,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         gap: 3,
-        padding: '11px 0 10px',
+        minHeight: 56,
+        padding: '9px 0 8px',
         background: 'none',
         border: 'none',
-        cursor: 'pointer',
-        fontSize: 9.5,
-        color: active ? 'var(--accent-primary)' : 'var(--text-muted)',
-        transition: 'color 0.15s',
+        fontSize: 11.5,
+        fontWeight: active ? 600 : 500,
+        color: active ? 'var(--text-primary)' : 'var(--text-muted)',
+        transition: 'color 0.2s',
       }}
     >
-      <svg width="21" height="21" viewBox="0 0 24 24" {...iconStroke} aria-hidden>
+      <svg width="22" height="22" viewBox="0 0 24 24" {...iconStroke} strokeWidth={active ? 2.2 : 1.9} aria-hidden>
         {children}
       </svg>
       {label}
