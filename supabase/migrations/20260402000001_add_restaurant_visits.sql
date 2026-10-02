@@ -17,18 +17,22 @@ alter table restaurant_review_photos
 
 alter table restaurant_visits enable row level security;
 
+drop policy if exists "auth users can read visits" on restaurant_visits;
 create policy "auth users can read visits"
 on restaurant_visits for select
 using (auth.role() = 'authenticated');
 
+drop policy if exists "auth users can insert visits" on restaurant_visits;
 create policy "auth users can insert visits"
 on restaurant_visits for insert
 with check (auth.role() = 'authenticated');
 
+drop policy if exists "auth users can update visits" on restaurant_visits;
 create policy "auth users can update visits"
 on restaurant_visits for update
 using (auth.role() = 'authenticated');
 
+drop policy if exists "auth users can delete visits" on restaurant_visits;
 create policy "auth users can delete visits"
 on restaurant_visits for delete
 using (auth.role() = 'authenticated');

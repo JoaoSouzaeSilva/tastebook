@@ -1,6 +1,7 @@
 -- ============================================================
--- TASTEBOOK — Supabase Schema
--- Run this entire file in your Supabase SQL Editor
+-- TASTEBOOK — Baseline schema (first migration)
+-- Was supabase-schema.sql. Applied by hand before migration history existed;
+-- recorded as applied in supabase_migrations.schema_migrations on 2026-10-02.
 -- ============================================================
 
 create extension if not exists "uuid-ossp";

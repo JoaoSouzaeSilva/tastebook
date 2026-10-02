@@ -22,11 +22,31 @@ This repo includes a GitHub Actions workflow at `.github/workflows/supabase-keep
 
 To enable it:
 
-1. Run the SQL in `supabase/migrations/20260405_001_add_app_keepalive_heartbeats.sql` on your Supabase project.
+1. Make sure `supabase/migrations/20260405000001_add_app_keepalive_heartbeats.sql` has been applied (it is part of the normal migration chain).
 2. Add these GitHub repository secrets:
    - `SUPABASE_URL`
    - `SUPABASE_SERVICE_ROLE_KEY`
 3. Optionally run the workflow manually once with `workflow_dispatch` to verify it works before relying on the schedule.
+
+## Database migrations
+
+The schema lives in `supabase/migrations/` and is the single source of truth.
+`20260401000000_initial_schema.sql` is the baseline; everything after it is an
+incremental change. Supabase tracks what has run in
+`supabase_migrations.schema_migrations`, so production and this folder stay in sync.
+
+To change the schema:
+
+1. Add a new file `supabase/migrations/<YYYYMMDDHHMMSS>_<what_it_does>.sql`
+   (for example via `supabase migration new <name>`). Never edit or rename a file that
+   has already been applied — write a new one instead.
+2. Prefer idempotent SQL (`if not exists`, `drop policy if exists` before `create policy`).
+3. Apply it with `supabase db push`, or ask Claude to apply it through the Supabase
+   connector (`apply_migration`), using the same version and name as the file.
+4. Commit the file in the same PR as the code that needs it.
+
+Do **not** run schema changes by hand in the SQL editor — they won't be recorded and
+the history drifts.
 
 ## Deploying
 
